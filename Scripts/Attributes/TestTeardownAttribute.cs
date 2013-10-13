@@ -1,9 +1,12 @@
 ﻿using System;
 
-[AttributeUsage(AttributeTargets.Method)]
-public class TestTeardownAttribute : Attribute
+namespace UnTested
 {
-	public TestTeardownAttribute()
+	[AttributeUsage(AttributeTargets.Method)]
+	public class TestTeardownAttribute : Attribute
 	{
+		public TestTeardownAttribute()
+		{
+		}
 	}
 }
