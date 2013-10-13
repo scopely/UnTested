@@ -39,7 +39,7 @@ public static class UnTestedEditorUtil {
 	
 	public static void WriteSMCSFileWithString(string s){
 		string path = Directory.GetCurrentDirectory() + "/Assets/smcs.rsp";
-		ShellCommand.Run("rm", path);
+		File.Delete (path);
 		using (StreamWriter outfile = new StreamWriter(path))
         {
             outfile.Write(s);
