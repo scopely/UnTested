@@ -1,9 +1,12 @@
 ﻿using System;
 
-[AttributeUsage(AttributeTargets.Class)]
-public class TestFixtureAttribute : Attribute
+namespace UnTested 
 {
-	public TestFixtureAttribute()
+	[AttributeUsage(AttributeTargets.Class)]
+	public class TestFixtureAttribute : Attribute
 	{
+		public TestFixtureAttribute()
+		{
+		}
 	}
 }

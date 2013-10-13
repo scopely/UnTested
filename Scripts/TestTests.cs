@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System;
+using UnTested;
 
 [TestFixture]
 public class TestTests {
