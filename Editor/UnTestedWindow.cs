@@ -265,7 +265,7 @@ namespace UnTested
 
 			scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
 			{
-
+				// Test Fixtures
 				foreach (FixtureEntry fixtureEntry in TestsConfig.Instance.Tests.Keys) {
 
 					if (fixtureEntry.WillFixtureTests == false)
