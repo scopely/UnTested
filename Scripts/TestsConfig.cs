@@ -28,6 +28,13 @@ namespace UnTested
 		}
 	}
 
+	public class AssemblyEntry
+	{
+		public TestState State { get; set; }
+		public MethodInfo Method { get; set; }
+		public List<LogEntry> Logs { get; set; }
+	}
+
 	public class FixtureEntry
 	{
 		public bool WillFixtureTests { get; set; }
@@ -53,7 +60,9 @@ namespace UnTested
 		private const string CONFIGURATION_RESOURCE = "Tests/tests";
 		private const string RESOURCE_PATH = "Assets/Resources/";
 		#endregion
-		
+
+		public Dictionary<FixtureEntry, List<AssemblyEntry>> AssemblySetups { get; set; }
+		public Dictionary<FixtureEntry, List<AssemblyEntry>> AssemblyTeardowns { get; set; }
 		public Dictionary<FixtureEntry, List<TestEntry>> Tests { get; set; }
 
 		[SerializeField]
@@ -174,12 +183,66 @@ namespace UnTested
 		private void LoadTestsFromAssembly () 
 		{
 			Tests = new Dictionary<FixtureEntry, List<TestEntry>> ();
+			AssemblySetups = new Dictionary<FixtureEntry, List<AssemblyEntry>> ();
+			AssemblyTeardowns = new Dictionary<FixtureEntry, List<AssemblyEntry>> ();
 
 			foreach (Type currentType in typeof(TestRunner).Assembly.GetTypes()) 
 			{
 				foreach (object classAttribute in currentType.GetCustomAttributes(true)) 
 				{
-					if (classAttribute is TestFixtureAttribute) 
+					// Assembly Fixtures
+					if(classAttribute is AssemblyFixtureAttribute)
+					{
+						FixtureEntry fixEntrySetup = new FixtureEntry () {
+							WillFixtureTests = true,
+							State = TestState.None,
+							FixtureType = currentType,
+							Logs = new List<LogEntry>(),
+						};
+						
+						FixtureEntry fixEntryTeardown = new FixtureEntry () {
+							WillFixtureTests = true,
+							State = TestState.None,
+							FixtureType = currentType,
+							Logs = new List<LogEntry>(),
+						};
+
+						List<AssemblyEntry> setups = new List<AssemblyEntry> ();
+						List<AssemblyEntry> teardowns = new List<AssemblyEntry> ();
+						AssemblySetups.Add (fixEntrySetup, setups);
+						AssemblyTeardowns.Add (fixEntryTeardown, teardowns);
+
+						foreach (MethodInfo methodCanidate in currentType.GetMethods(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public)) 
+						{
+							foreach (object att in methodCanidate.GetCustomAttributes(true)) 
+							{
+								List<AssemblyEntry> list = null;
+
+								if (att is AssemblySetupAttribute)
+								{
+									list = setups;
+								} 
+								else if(att is AssemblyTeardownAttribute)
+								{
+									list = teardowns;
+								}
+
+								if(list != null) 
+								{
+									AssemblyEntry entry = new AssemblyEntry () {
+										State = TestState.None,
+										Method = methodCanidate,
+										Logs = new List<LogEntry>(),
+									};
+
+									list.Add(entry);
+								}
+							}
+						}
+					}
+
+					// Test Fixtures
+					else if (classAttribute is TestFixtureAttribute) 
 					{
 						FixtureEntry fixEntry = new FixtureEntry () {
 							WillFixtureTests = false,
