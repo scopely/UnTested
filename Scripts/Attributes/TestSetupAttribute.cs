@@ -1,10 +1,12 @@
 using System;
 
-[AttributeUsage(AttributeTargets.Method)]
-public class TestSetupAttribute : Attribute
+namespace UnTested
 {
-	public TestSetupAttribute()
+	[AttributeUsage(AttributeTargets.Method)]
+	public class TestSetupAttribute : Attribute
 	{
+		public TestSetupAttribute()
+		{
+		}
 	}
 }
-
