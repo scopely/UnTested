@@ -13,6 +13,7 @@ namespace UnTested
 	public class TestRunner : Singleton<TestRunner>
 	{
 		public event Action OnAllTestsFinished;
+		public bool FinishedRunning = false;
 
 		private List<ITestReport> failedSetupReports = null;
 		private List<ITestReport> failedTestReports = null;
@@ -194,6 +195,8 @@ namespace UnTested
 
 			if (OnAllTestsFinished != null)
 				OnAllTestsFinished ();
+
+			FinishedRunning = true;
 		}
 
 		private bool AreWeRunningHeadless () {
