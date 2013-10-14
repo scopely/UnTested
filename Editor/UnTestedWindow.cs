@@ -212,6 +212,12 @@ namespace UnTested
 					EditorUtil.PlayEditor ();
 					return;
 				}
+
+				if (GUILayout.Button ("Run Paused")) {
+					EditorUtil.PlayEditor ();
+					EditorApplication.isPaused = true;
+					return;
+				}
 			}
 			EditorGUILayout.EndHorizontal ();
 
