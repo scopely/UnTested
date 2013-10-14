@@ -168,6 +168,13 @@ namespace UnTested
 			}
 		}
 
+		void DrawStopButton (string title)
+		{
+			if (GUILayout.Button (title)) {
+				EditorApplication.isPlaying = false;
+			}
+		}
+
 		void OnGUINotConfiguredInEditor ()
 		{
 			GUILayout.Label ("Unit Testing is Disabled");
@@ -203,6 +210,12 @@ namespace UnTested
 
 				if (GUILayout.Button ("Run")) {
 					EditorUtil.PlayEditor ();
+					return;
+				}
+
+				if (GUILayout.Button ("Run Paused")) {
+					EditorUtil.PlayEditor ();
+					EditorApplication.isPaused = true;
 					return;
 				}
 			}
@@ -259,7 +272,17 @@ namespace UnTested
 			string percentMsg = string.Format ("Tests Completed ({0}/{1})", TestRunner.Instance.NumCompleted, TestsConfig.Instance.NumberOfTestsToRun);
 
 			DrawProgessBar (new Vector2 (0.0f, 0.0f), new Vector2 (this.position.width, PROGRESS_BAR_HEIGHT), percentDone, percentMsg);
-			DrawPauseResume ();
+
+			EditorGUILayout.BeginHorizontal ();
+			{
+				if (TestRunner.Instance.FinishedRunning) {
+					DrawStopButton ("Done");
+				} else {
+					DrawPauseResume ();
+					DrawStopButton ("Stop");
+				}
+			}
+			EditorGUILayout.EndHorizontal ();
 
 			GUI.color = Color.white; 
 
