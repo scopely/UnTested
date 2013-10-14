@@ -128,7 +128,7 @@ namespace UnTested
 		{
 			if(FailedTestCounter > 0 || failedSetupCounter > 0 || failedTeardownCounter > 0) {
 				string log = string.Format ("{0} Tests Run, {1} Tests Failed, {2} Tests Passed, {3} Setups Failed, {4} Teardowns Failed\n",
-				                            TestsConfig.Instance.NumberOfTestsToRun, FailedTestCounter, TestsConfig.Instance.NumberOfTestsToRun - FailedTestCounter, failedSetupCounter, failedTeardownCounter);
+				                            NumCompleted, FailedTestCounter, NumCompleted - FailedTestCounter, failedSetupCounter, failedTeardownCounter);
 
 				if(failedSetupCounter > 0)
 					log += CreateErrorReportChunk ("Failed Setups", failedSetupReports);
@@ -139,7 +139,7 @@ namespace UnTested
 
 				Debug.LogError(log);
 			} else {
-				Debug.Log (string.Format ("All {0} Tests Passed", TestsConfig.Instance.NumberOfTestsToRun));
+				Debug.Log (string.Format ("All {0} Tests Passed", NumCompleted));
 			}
 		}
 
@@ -163,9 +163,7 @@ namespace UnTested
 			areWeHeadless = AreWeRunningHeadless();
 			#endif
 
-			if(Introspection.Testing) {
-				RunAllTests ();
-			}
+			RunAllTests ();
 		}
 
 		public void RunAllTests() 

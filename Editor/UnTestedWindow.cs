@@ -7,6 +7,10 @@ namespace UnTested
 {
 	public class UnTestedWindow : EditorWindow
 	{
+		#region Constants								
+		private const string UNIT_TESTS_SCENE = "Assets/UnTested/Scenes/Tests.unity";
+		#endregion
+
 		#region Private Members
 		private Vector2 scrollPos = Vector2.zero;
 		private Vector2 consoleScrollPos = Vector2.zero;
@@ -46,8 +50,21 @@ namespace UnTested
 		[MenuItem("Scopely/UnTested/Run Tests With Dialog...")]
 		public static void ShowWindow()
 		{
-			UnTestedMenuItems.UnitTestBuild ();
+			UnitTestBuild ();
 			EditorWindow.GetWindow<UnTestedWindow>("UnTested");
+		}
+
+		public static void UnitTestBuild ()
+		{
+			if(EditorApplication.currentScene != UNIT_TESTS_SCENE) {
+				EditorApplication.OpenScene(UNIT_TESTS_SCENE);
+			}
+		}
+
+		public static void RunAllUnitTests ()
+		{
+			UnitTestBuild();
+			EditorUtil.PlayEditor();
 		}
 
 		public void OnEnable ()
@@ -181,7 +198,7 @@ namespace UnTested
 
 			if(GUILayout.Button("Enable Unit Testing")) {
 				Application.Quit ();
-				UnTestedMenuItems.UnitTestBuild ();
+				UnitTestBuild ();
 				TestsConfig.Instance.Reload ();
 			}
 		}
@@ -375,10 +392,6 @@ namespace UnTested
 		{
 			if(EditorApplication.isCompiling || loading) {
 				GUILayout.Label ("Compiling...");
-			} else if(!Introspection.Testing && !Application.isPlaying) {
-				OnGUINotConfiguredInEditor ();
-			} else if(!Introspection.Testing && Application.isPlaying) {
-				OnGUINotConfiguredWhilePlaying ();
 			} else if(Application.isPlaying) {
 				OnGUIWhilePlaying ();
 			} else {
