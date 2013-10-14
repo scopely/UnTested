@@ -16,6 +16,7 @@ namespace UnTested
 		private Vector2 consoleScrollPos = Vector2.zero;
 		private FixtureEntry selectedFixture = null;
 		private TestEntry selectedTest = null;
+		private GUIStyle selectedBoxStyle;
 		private bool loading = false;
 		#endregion
 
@@ -35,6 +36,7 @@ namespace UnTested
 			testStateImages [(int)TestState.InProgress] = Resources.Load ("Running") as Texture2D;
 			testStateImages [(int)TestState.Failed] = Resources.Load ("Fail") as Texture2D;
 			testStateImages [(int)TestState.Passed] = Resources.Load ("Pass") as Texture2D;
+
 
 
 			loading = false;
@@ -281,6 +283,9 @@ namespace UnTested
 		
 		void OnGUIWhilePlaying ()
 		{
+			selectedBoxStyle = new GUIStyle (GUI.skin.box);
+			selectedBoxStyle.normal.background = EditorGUIUtility.whiteTexture;
+
 			// Progress Bar
 			float percentDone = 0.0f;
 			if (TestsConfig.Instance.NumberOfTestsToRun > 0) {
@@ -311,8 +316,17 @@ namespace UnTested
 					if (fixtureEntry.WillFixtureTests == false)
 						continue;
 
-					GUI.backgroundColor = fixtureEntry == selectedFixture ? Color.cyan : Color.white;
-					Rect fixtureRect = EditorGUILayout.BeginHorizontal (GUI.skin.box);
+					GUIStyle boxStyle = GUI.skin.box;
+					Color boxColor = Color.white;
+
+					if(fixtureEntry == selectedFixture)
+					{
+						boxStyle = selectedBoxStyle;
+						boxColor = new Color (0.0f, 0.0f, 0.75f);
+					}
+
+					GUI.backgroundColor = boxColor;
+					Rect fixtureRect = EditorGUILayout.BeginHorizontal (boxStyle);
 					{
 						SetColorFromState (fixtureEntry.State);
 
@@ -337,8 +351,17 @@ namespace UnTested
 						foreach (TestEntry entry in TestsConfig.Instance.Tests[fixtureEntry]) {
 							if (entry.WillRunTest) {
 
-								GUI.backgroundColor = entry == selectedTest ? Color.cyan : Color.white;
-								Rect entryRect = EditorGUILayout.BeginHorizontal (GUI.skin.box);
+								boxStyle = GUI.skin.box;
+								boxColor = Color.white;
+
+								if(entry == selectedTest)
+								{
+									boxStyle = selectedBoxStyle;
+									boxColor = new Color (0.0f, 0.0f, 0.75f);
+								}
+
+								GUI.backgroundColor = boxColor;
+								Rect entryRect = EditorGUILayout.BeginHorizontal (boxStyle);
 								{
 									SetColorFromState (entry.State);
 
