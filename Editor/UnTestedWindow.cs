@@ -322,7 +322,7 @@ namespace UnTested
 					if(fixtureEntry == selectedFixture)
 					{
 						boxStyle = selectedBoxStyle;
-						boxColor = new Color (0.0f, 0.0f, 0.75f);
+						boxColor = new Color (0.0f, 0.0f, 0.5f);
 					}
 
 					GUI.backgroundColor = boxColor;
@@ -357,7 +357,7 @@ namespace UnTested
 								if(entry == selectedTest)
 								{
 									boxStyle = selectedBoxStyle;
-									boxColor = new Color (0.0f, 0.0f, 0.75f);
+									boxColor = new Color (0.0f, 0.0f, 0.5f);
 								}
 
 								GUI.backgroundColor = boxColor;

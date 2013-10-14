@@ -3,45 +3,24 @@
 //using System;
 //using UnTested;
 //
-//[AssemblyFixture]
-//public class AssemblyTests {
-//
-//	[AssemblySetup]
-//	public IEnumerator TestAssemblySetup ()
-//	{
-//		yield return new WaitForSeconds (2.0f);
-//		Assert.IsNull (null, "THIS SHOULD PASS");
-//	}
-//
-//	[AssemblyTeardown]
-//	public IEnumerator TestAssemblyTeardown ()
-//	{
-//		yield return new WaitForSeconds (2.0f);
-//		Assert.IsNull (null, "THIS SHOULD PASS");
-//	}
-//}
-//
 //[TestFixture]
 //public class TestTests {
 //
 //	[TestSetup]
-//	public IEnumerator TestSetup ()
+//	public void TestSetup ()
 //	{
-//		yield return new WaitForSeconds (2.0f);
 //		Assert.IsNull (null, "THIS SHOULD PASS");
 //	}
 //
 //	[Test]
-//	public IEnumerator Test ()
+//	public void Test ()
 //	{
-//		yield return new WaitForSeconds (2.0f);
-//		Assert.IsNull (null, "THIS SHOULD PASS");
+//		Assert.IsNotNull (null, "THIS SHOULD FAIL!");
 //	}
 //
 //	[TestTeardown]
-//	public IEnumerator TestTeardown ()
+//	public void TestTeardown ()
 //	{
-//		yield return new WaitForSeconds (2.0f);
 //		Assert.IsNull (null, "THIS SHOULD Pass");
 //	}
 //}

@@ -222,6 +222,11 @@ namespace UnTested
 
 		private void HandleTestLog(string logString, string stackTrace, LogType logType)
 		{
+			if(logType == LogType.Assert || logType == LogType.Error || logType == LogType.Exception)
+			{
+				logString += "\n\n" + stackTrace;
+			}
+
 			LogEntry logEntry = new LogEntry (logString, logType);
 			currentFixture.Logs.Add (logEntry);
 			currentTest.Logs.Add (logEntry);
