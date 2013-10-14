@@ -14,18 +14,24 @@ namespace UnTested
 		#endregion
 
 		#region Configure Helpers
+		private static void SetSymbolForAllGroups(string symbol)
+		{
+			PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildTargetGroup.Standalone, symbol);
+			PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildTargetGroup.iPhone, symbol);
+			PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildTargetGroup.Android, symbol);
+			PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildTargetGroup.WebPlayer, symbol);
+		}
+
 		private static void SetPlayerSettingsForTesting () 
 		{
-			PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildTargetGroup.Standalone, "TESTS");
-			PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildTargetGroup.iPhone, "TESTS");
-			PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildTargetGroup.Android, "TESTS");
+			SetSymbolForAllGroups ("TESTS");
+			PlayerSettings.runInBackground = true;
 		}
 		
 		private static void SetPlayerSettingsForNonTesting () 
 		{
-			PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildTargetGroup.Standalone, "");
-			PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildTargetGroup.iPhone, "");
-			PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildTargetGroup.Android, "");
+			SetSymbolForAllGroups ("");
+			PlayerSettings.runInBackground = false;
 		}
 		
 		private static void SetBuildSettingsForTesting () 

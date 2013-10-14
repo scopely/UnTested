@@ -14,7 +14,7 @@ public class AssemblyTests {
 	}
 
 	[AssemblyTeardown]
-	public IEnumerator TestAssmeblyTeardown ()
+	public IEnumerator TestAssemblyTeardown ()
 	{
 		yield return new WaitForSeconds (2.0f);
 		Assert.IsNull (null, "THIS SHOULD PASS");
