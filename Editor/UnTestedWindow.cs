@@ -17,7 +17,6 @@ namespace UnTested
 		private Vector2 logWindowScrollPos = Vector2.zero;
 		private FixtureEntry selectedFixture = null;
 		private TestEntry selectedTest = null;
-		private GUIStyle selectedBoxStyle;
 		#endregion
 
 		#region GUI Constants
@@ -28,6 +27,7 @@ namespace UnTested
 		private const float PROGRESS_BAR_BG_FILL = 0.2f;
 		private const float PROGRESS_BAR_FG_FILL = 0.75f;
 		private const float LOG_WINDOW_HEIGHT = 200.0f;
+		private const float PRO_SELECTION_BLUE = 0.5f;
 		#endregion
 
 		#region Initialization
@@ -128,8 +128,10 @@ namespace UnTested
 			Color boxColor = Color.white;
 			if(isSelection)
 			{
+				GUIStyle selectedBoxStyle = new GUIStyle (GUI.skin.box);
+				selectedBoxStyle.normal.background = EditorGUIUtility.whiteTexture;
 				boxStyle = selectedBoxStyle;
-				boxColor = Color.cyan;
+				boxColor = EditorGUIUtility.isProSkin ? new Color(0.0f, 0.0f, PRO_SELECTION_BLUE) : Color.cyan;
 			}
 
 			GUI.backgroundColor = boxColor;
@@ -323,11 +325,6 @@ namespace UnTested
 		
 		private void OnGUIWhilePlaying ()
 		{
-			if(selectedBoxStyle == null) {
-				selectedBoxStyle = new GUIStyle (GUI.skin.box);
-				selectedBoxStyle.normal.background = EditorGUIUtility.whiteTexture;
-			}
-			
 			DrawProgessBar ();
 			DrawWhilePlayingButtons();
 			
