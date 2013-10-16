@@ -5,9 +5,26 @@ using UnityEngine;
 
 namespace UnTested 
 {
+	/// <summary>
+	/// Assert - Assertion Methods (Extend as Needed)
+	/// These Methods throw Exceptions if the Assertions Fail, these exceptions get caught and processed by
+	/// TestRunner when running unit tests. Do not use these methods outside of these Attributed Classes and Methods:
+	/// 	AssemblyFixture
+	/// 		AssemblySetup
+	/// 		AssemblyTeardown
+	/// 	TestFixture
+	/// 		TestSetup
+	/// 		Test
+	/// 		TestTeardown
+	/// </summary>
 	public static class Assert {
 
 		#region Null Checks
+		/// <summary>
+		/// Throw Assertion Exception, with message, if the object is null.
+		/// </summary>
+		/// <param name="obj">Object.</param>
+		/// <param name="message">Message.</param>
 		public static void IsNotNull (object obj, string message = "") 
 		{
 			if(obj == null) {
@@ -15,6 +32,11 @@ namespace UnTested
 			}
 		}
 
+		/// <summary>
+		/// Throw Assertion Exception, with message, if the object is not null.
+		/// </summary>
+		/// <param name="obj">Object.</param>
+		/// <param name="message">Message.</param>
 		public static void IsNull (object obj, string message = "") 
 		{
 			if(obj != null) {
@@ -25,6 +47,11 @@ namespace UnTested
 		#endregion
 
 		#region Conditions
+		/// <summary>
+		/// Throw Assertion Exception, with message, if the condition is false.
+		/// </summary>
+		/// <param name="condition">If set to <c>true</c> condition.</param>
+		/// <param name="message">Message.</param>
 		public static void IsTrue (bool condition, string message = "")
 		{
 			if(!condition) {
@@ -32,6 +59,11 @@ namespace UnTested
 			}
 		}
 
+		/// <summary>
+		/// Throw Assertion Exception, with message, if the condition is true.
+		/// </summary>
+		/// <param name="condition">If set to <c>true</c> condition.</param>
+		/// <param name="message">Message.</param>
 		public static void IsFalse (bool condition, string message = "")
 		{
 			if(condition) {
@@ -41,6 +73,12 @@ namespace UnTested
 		#endregion
 
 		#region Equals
+		/// <summary>
+		/// Throw Assertion Exception, with message, if the actual object is not equal to the expected object.
+		/// </summary>
+		/// <param name="expected">Expected.</param>
+		/// <param name="actual">Actual.</param>
+		/// <param name="message">Message.</param>
 		public static void AreEqual (object expected, object actual, string message = "")
 		{
 			if(expected == null && actual == null) {
@@ -59,6 +97,12 @@ namespace UnTested
 			}
 		}
 
+		/// <summary>
+		/// Throw Assertion Exception, with message, if the actual object is equal to the expected object.
+		/// </summary>
+		/// <param name="expected">Expected.</param>
+		/// <param name="actual">Actual.</param>
+		/// <param name="message">Message.</param>
 		public static void AreNotEqual (object expected, object actual, string message = "")
 		{
 			if(expected == null && actual == null) {
@@ -77,8 +121,12 @@ namespace UnTested
 		#endregion
 
 		#region Empty
-
 		#region String
+		/// <summary>
+		/// Throw Assertion Exception, with message, if the string is not empty.
+		/// </summary>
+		/// <param name="str">String.</param>
+		/// <param name="message">Message.</param>
 		public static void IsEmpty (string str, string message = "")
 		{
 			if(str != "") {
@@ -86,6 +134,11 @@ namespace UnTested
 			}
 		}
 
+		/// <summary>
+		/// Throw Assertion Exception, with message, if the string is not empty or null.
+		/// </summary>
+		/// <param name="str">String.</param>
+		/// <param name="message">Message.</param>
 		public static void IsEmptyOrNull (string str, string message = "")
 		{
 			if(!string.IsNullOrEmpty(str)) {
@@ -93,6 +146,11 @@ namespace UnTested
 			}
 		}
 
+		/// <summary>
+		/// Throw Assertion Exception, with message, if the string is empty.
+		/// </summary>
+		/// <param name="str">String.</param>
+		/// <param name="message">Message.</param>
 		public static void IsNotEmpty (string str, string message = "")
 		{
 			if(str == "") {
@@ -100,6 +158,11 @@ namespace UnTested
 			}
 		}
 
+		/// <summary>
+		/// Throw Assertion Exception, with message, if the string is empty or null.
+		/// </summary>
+		/// <param name="str">String.</param>
+		/// <param name="message">Message.</param>
 		public static void IsNotEmptyOrNull (string str, string message = "")
 		{
 			if(string.IsNullOrEmpty(str)) {
@@ -109,6 +172,11 @@ namespace UnTested
 		#endregion
 
 		#region Collection
+		/// <summary>
+		/// Throw Assertion Exception, with message, if the collection of type T is not empty.
+		/// </summary>
+		/// <param name="collection">Collection.</param>
+		/// <param name="message">Message.</param>
 		public static void IsEmpty<T> (ICollection<T> collection, string message = "")
 		{
 			if(collection.Count > 0) {
@@ -117,6 +185,11 @@ namespace UnTested
 			}
 		}
 
+		/// <summary>
+		/// Throw Assertion Exception, with message, if the collection of type T is not empty or null.
+		/// </summary>
+		/// <param name="collection">Collection.</param>
+		/// <param name="message">Message.</param>
 		public static void IsEmptyOrNull<T> (ICollection<T> collection, string message = "")
 		{
 			if (collection == null)
@@ -128,6 +201,12 @@ namespace UnTested
 			}
 		}
 
+		/// <summary>
+		/// Throw Assertion Exception, with message, if the collection of type T is empty.
+		/// </summary>
+		/// <returns><c>true</c> if is not empty the specified collection message; otherwise, <c>false</c>.</returns>
+		/// <param name="collection">Collection.</param>
+		/// <param name="message">Message.</param>
 		public static void IsNotEmpty<T> (ICollection<T> collection, string message = "")
 		{
 			if(collection.Count == 0) {
@@ -136,6 +215,11 @@ namespace UnTested
 			}
 		}
 
+		/// <summary>
+		/// Throw Assertion Exception, with message, if the collection of type T is empty or null.
+		/// </summary>
+		/// <param name="collection">Collection.</param>
+		/// <param name="message">Message.</param>
 		public static void IsNotEmptyOrNull<T> (ICollection<T> collection, string message = "")
 		{
 			if(collection == null) {
@@ -148,7 +232,6 @@ namespace UnTested
 			}
 		}
 		#endregion
-
 		#endregion
 	}
 }
