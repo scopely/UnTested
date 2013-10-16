@@ -47,13 +47,13 @@ namespace UnTested
 		#endregion
 		
 		#region Window Lifetime
-		[MenuItem("Scopely/UnTested/Run Tests With Dialog...")]
+		[MenuItem("Window/UnTested")]
 		private static void ShowWindow()
 		{
 			OpenUnitTestScene ();
 			EditorWindow.GetWindow<UnTestedWindow>("UnTested");
 		}
-		[MenuItem("Scopely/UnTested/Run Tests With Dialog...", true)]
+		[MenuItem("Window/UnTested", true)]
 		private static bool ValidateRTD ()
 		{
 			return !EditorApplication.isPlaying;
@@ -293,6 +293,7 @@ namespace UnTested
 						} else {
 							foreach (TestEntry entry in TestsConfig.Instance.Tests[fixtureEntry]) 
 							{
+								bool originalTestOn = entry.WillRun;
 								entry.WillRun = GUILayout.Toggle (entry.WillRun, entry.TestMethod.Name);
 
 								bool allOff = true;
@@ -306,6 +307,8 @@ namespace UnTested
 
 								if (fixtureEntry.WillRun != !allOff) {
 									fixtureEntry.WillRun = !allOff;
+									SaveTests ();
+								} else if(originalTestOn != entry.WillRun) {
 									SaveTests ();
 								}
 							}
