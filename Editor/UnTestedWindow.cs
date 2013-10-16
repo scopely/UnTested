@@ -61,6 +61,11 @@ namespace UnTested
 		
 		private void Update () 
 		{
+			if(!EditorApplication.isCompiling && !Application.isPlaying) 
+			{
+				TestsConfig.Instance.Update();	
+			}
+		
 			this.Repaint ();
 		}
 		#endregion
@@ -244,6 +249,9 @@ namespace UnTested
 
 		private void OnGUINotPlaying ()
 		{
+			Undo.SetSnapshotTarget(TestsConfig.Instance, "Config Changed");
+			Undo.CreateSnapshot();
+		
 			DrawNotPlayingButtons();
 
 			scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
@@ -288,6 +296,12 @@ namespace UnTested
 				}
 			}
 			EditorGUILayout.EndScrollView();
+			
+			if (GUI.changed)
+		    {
+		        EditorUtility.SetDirty(TestsConfig.Instance);
+		        Undo.RegisterSnapshot();
+		    }
 		}
 		
 		private void OnGUIWhilePlaying ()
