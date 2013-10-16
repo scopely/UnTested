@@ -11,24 +11,31 @@ namespace UnTested
 		private const string UNIT_TESTS_SCENE = "Assets/UnTested/Scenes/Tests.unity";
 		#endregion
 
-		#region Private Members
+		#region Private Fields
+		private Texture2D[] testStateImages = null;
 		private Vector2 scrollPos = Vector2.zero;
-		private Vector2 consoleScrollPos = Vector2.zero;
+		private Vector2 logWindowScrollPos = Vector2.zero;
 		private FixtureEntry selectedFixture = null;
 		private TestEntry selectedTest = null;
 		private GUIStyle selectedBoxStyle;
-		private bool loading = false;
 		#endregion
 
 		#region GUI Constants
 		private const int TESTS_INDENT = 18;
 		private const int PASS_FAIL_SIZE = 16;
-		private const int PASS_FAIL_SIZE_PADDING = 5;
 		private const int PASS_FAIL_HEIGHT_PADDING = 2;
 		private const int PROGRESS_BAR_HEIGHT = 30;
+		private const float PROGRESS_BAR_BG_FILL = 0.2f;
+		private const float PROGRESS_BAR_FG_FILL = 0.75f;
+		private const float LOG_WINDOW_HEIGHT = 200.0f;
 		#endregion
 
-		private Texture2D[] testStateImages = null;
+		#region Initialization
+		private void OnEnable ()
+		{
+			LoadImages ();
+		}
+		
 		private void LoadImages ()
 		{
 			testStateImages = new Texture2D[(int)TestState.MAX];
@@ -36,150 +43,113 @@ namespace UnTested
 			testStateImages [(int)TestState.InProgress] = Resources.Load ("Running") as Texture2D;
 			testStateImages [(int)TestState.Failed] = Resources.Load ("Fail") as Texture2D;
 			testStateImages [(int)TestState.Passed] = Resources.Load ("Pass") as Texture2D;
-
-
-
-			loading = false;
 		}
+		#endregion
 		
 		#region Window Lifetime
+		[MenuItem("Scopely/UnTested/Run Tests With Dialog...")]
+		private static void ShowWindow()
+		{
+			OpenUnitTestScene ();
+			EditorWindow.GetWindow<UnTestedWindow>("UnTested");
+		}
 		[MenuItem("Scopely/UnTested/Run Tests With Dialog...", true)]
-		public static bool ValidateRTD ()
+		private static bool ValidateRTD ()
 		{
 			return !EditorApplication.isPlaying;
 		}
-
-		[MenuItem("Scopely/UnTested/Run Tests With Dialog...")]
-		public static void ShowWindow()
+		
+		private void Update () 
 		{
-			UnitTestBuild ();
-			EditorWindow.GetWindow<UnTestedWindow>("UnTested");
+			this.Repaint ();
 		}
-
-		public static void UnitTestBuild ()
+		#endregion
+		
+		#region Configuration
+		public static void RunAllUnitTests ()
+		{
+			OpenUnitTestScene();
+			TestsConfig.Instance.SetAllOn(true);
+			EditorUtil.PlayEditor();
+		}
+		
+		private static void OpenUnitTestScene ()
 		{
 			if(EditorApplication.currentScene != UNIT_TESTS_SCENE) {
 				EditorApplication.OpenScene(UNIT_TESTS_SCENE);
 			}
 		}
-
-		public static void RunAllUnitTests ()
-		{
-			UnitTestBuild();
-			EditorUtil.PlayEditor();
-		}
-
-		public void OnEnable ()
-		{
-			loading = false;
-			LoadImages ();
-		}
-		#endregion
-		void SetAllOn(bool onOff) {
-			foreach (FixtureEntry fixtureEntry in TestsConfig.Instance.Tests.Keys) {
-				fixtureEntry.WillFixtureTests = onOff;
-				foreach (TestEntry entry in TestsConfig.Instance.Tests[fixtureEntry]) {
-					entry.WillRunTest = onOff;
-				}
-			}
-		}
-
-		void SaveTests()
+		
+		private void SaveTests()
 		{
 			TestsConfig.Instance.Persist ();
 			EditorUtility.SetDirty (TestsConfig.Instance);
 		}
-
+		#endregion
+		
 		#region OnGUI calls
-		void SetColorFromState(TestState state)
+		private Color GetColorFromTestState(TestState state)
 		{
+			Color color = Color.white;
+		
 			switch(state) {
 			case TestState.None:
-				GUI.contentColor = Color.white;
+				color = Color.white;
 				break;
 			case TestState.Failed:
-				GUI.contentColor = Color.red;
+				color = Color.red;
 				break;
 			case TestState.InProgress:
-				GUI.contentColor = Color.yellow;
+				color = Color.yellow;
 				break;
 			case TestState.Passed:
-				GUI.contentColor = Color.green;
+				color = Color.green;
 				break;
 			}
+			
+			return color;
 		}
 
-		void SetColorFromLogType(LogType logType)
-		{
-			switch(logType) {
-			case LogType.Log:
-				GUI.contentColor = Color.white;
-				break;
-			case LogType.Error:
-				GUI.contentColor = Color.red;
-				break;
-			case LogType.Exception:
-				GUI.contentColor = Color.red;
-				break;
-			case LogType.Assert:
-				GUI.contentColor = Color.red;
-				break;
-			case LogType.Warning:
-				GUI.contentColor = Color.yellow;
-				break;
-			}
-		}
-
-		void HelpBoxFromLogType(string msg, LogType logType)
-		{
-			MessageType msgType = MessageType.None;
-
-			switch(logType) {
-			case LogType.Log:
-				msgType = MessageType.Info;
-				break;
-			case LogType.Error:
-				msgType = MessageType.Error;
-				break;
-			case LogType.Exception:
-				msgType = MessageType.Error;
-				break;
-			case LogType.Assert:
-				msgType = MessageType.Error;
-				break;
-			case LogType.Warning:
-				msgType = MessageType.Warning;
-				break;
-			}
-
-			EditorGUILayout.HelpBox (msg, msgType);
-		}
-
-		Texture2D GetTextureForState(TestState state) 
+		private Texture2D GetTextureForTestState(TestState state) 
 		{
 			return testStateImages [(int)state];
 		}
-
-		void DrawProgessBar(Vector2 location, Vector2 size, float progress, string msg)
+		
+		private GUIStyle GetSelectionBox(bool isSelection)
 		{
-			Rect backRect = new Rect (location.x, location.y, size.x, size.y);
-
-			Color bgColor = new Color (0.0f, 0.2f, 0.0f);
-			Color fgColor = new Color (0.0f, 0.75f, 0.0f);
-
-			if(TestRunner.Instance.FailedTestCounter > 0) {
-				bgColor = new Color (0.2f, 0.0f, 0.0f);
-				fgColor = new Color (0.75f, 0.0f, 0.0f);
+			GUIStyle boxStyle = GUI.skin.box;
+			Color boxColor = Color.white;
+			if(isSelection)
+			{
+				boxStyle = selectedBoxStyle;
+				boxColor = Color.cyan;
 			}
 
-			EditorGUI.DrawRect(backRect, bgColor);
-			EditorGUI.DrawRect(new Rect(location.x, location.y, size.x * progress, size.y), fgColor);
-
-			GUILayout.Space (PROGRESS_BAR_HEIGHT);
-			GUILayout.Label (msg, "BoldLabel");
+			GUI.backgroundColor = boxColor;
+			
+			return boxStyle;
 		}
 
-		void DrawPauseResume ()
+		private void DrawProgessBar()
+		{
+			float percentDone = 0.0f;
+			if (TestsConfig.Instance.NumberOfTestsToRun > 0) {
+				percentDone = (float)TestRunner.Instance.NumberOfTestsCompleted / (float)TestsConfig.Instance.NumberOfTestsToRun;
+			}
+			string percentMsg = string.Format ("Tests Completed ({0}/{1})", TestRunner.Instance.NumberOfTestsCompleted, TestsConfig.Instance.NumberOfTestsToRun);
+		
+			Color bgColor = new Color (0.0f, PROGRESS_BAR_BG_FILL, 0.0f);
+			Color fgColor = new Color (0.0f, PROGRESS_BAR_FG_FILL, 0.0f);
+
+			if(TestRunner.Instance.FailedTestCounter > 0) {
+				bgColor = new Color (PROGRESS_BAR_BG_FILL, 0.0f, 0.0f);
+				fgColor = new Color (PROGRESS_BAR_FG_FILL, 0.0f, 0.0f);
+			}
+
+			EditorUtil.DrawProgessBar(new Vector2 (0.0f, 0.0f), new Vector2 (this.position.width, PROGRESS_BAR_HEIGHT), percentDone, percentMsg, bgColor, fgColor, "BoldLabel");	
+		}
+
+		private void DrawPauseResumeButton ()
 		{
 			string pauseButtonStr = EditorApplication.isPaused ? "Resume" : "Pause";
 			if (GUILayout.Button (pauseButtonStr)) {
@@ -187,46 +157,31 @@ namespace UnTested
 			}
 		}
 
-		void DrawStopButton (string title)
+		private void DrawStopButton (string title)
 		{
 			if (GUILayout.Button (title)) {
 				EditorApplication.isPlaying = false;
 			}
 		}
-
-		void OnGUINotConfiguredInEditor ()
-		{
-			GUILayout.Label ("Unit Testing is Disabled");
-
-			if(GUILayout.Button("Enable Unit Testing")) {
-				Application.Quit ();
-				UnitTestBuild ();
-				TestsConfig.Instance.Reload ();
-			}
-		}
-
-		void OnGUINotConfiguredWhilePlaying ()
-		{
-			GUILayout.Label ("Unit Testing is Disabled\nStop Running to Enable Unit Testing");
-		}
-
-		void OnGUINotRunning ()
+		
+		private void DrawNotPlayingButtons ()
 		{
 			EditorGUILayout.BeginHorizontal ();
 			{
 				// All / None Buttons
 				if (GUILayout.Button ("All")) {
-					SetAllOn (true);
+					TestsConfig.Instance.SetAllOn (true);
 					SaveTests ();
 					return;
 				}
 
 				if (GUILayout.Button ("None")) {
-					SetAllOn (false);
+					TestsConfig.Instance.SetAllOn (false);
 					SaveTests ();
 					return;
 				}
 
+				// Run Buttons
 				if (GUILayout.Button ("Run")) {
 					EditorUtil.PlayEditor ();
 					return;
@@ -239,40 +194,94 @@ namespace UnTested
 				}
 			}
 			EditorGUILayout.EndHorizontal ();
+		}
+		
+		private void DrawWhilePlayingButtons ()
+		{
+			EditorGUILayout.BeginHorizontal ();
+			{
+				if (TestRunner.Instance.FinishedRunning) {
+					DrawStopButton ("Done");
+				} else {
+					DrawPauseResumeButton ();
+					DrawStopButton ("Stop");
+				}
+			}
+			EditorGUILayout.EndHorizontal ();
+		}
+		
+		private void DrawTestStateIcon(Rect refRect, TestState state)
+		{
+			GUI.color = Color.white;
+			GUI.contentColor = Color.white;
+
+			float x = refRect.width - PASS_FAIL_SIZE;
+			float y = refRect.y + PASS_FAIL_HEIGHT_PADDING;
+			Rect stateRect = new Rect (x, y, PASS_FAIL_SIZE, PASS_FAIL_SIZE);
+
+			GUI.DrawTexture (stateRect, GetTextureForTestState (state));
+		}
+		
+		private void DrawLogWindow()
+		{
+			EditorUtil.SetAllColors(Color.white);
+			logWindowScrollPos = EditorGUILayout.BeginScrollView(logWindowScrollPos, true, true, GUI.skin.horizontalScrollbar,
+			                                                     GUI.skin.verticalScrollbar, GUI.skin.box,
+			                                                     GUILayout.Width (this.position.width), GUILayout.Height (LOG_WINDOW_HEIGHT));
+			{
+				if (selectedFixture != null) {
+					foreach (LogEntry log in selectedFixture.Logs) {
+						EditorUtil.HelpBoxFromLogType (log.LogMsg, log.LogType);
+					}
+				} else if (selectedTest != null) {
+					foreach (LogEntry log in selectedTest.Logs) {
+						EditorUtil.HelpBoxFromLogType (log.LogMsg, log.LogType);
+					}
+				}
+			}
+			EditorGUILayout.EndScrollView();
+		}
+
+		private void OnGUINotPlaying ()
+		{
+			DrawNotPlayingButtons();
 
 			scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
 			{
-
-				foreach (FixtureEntry fixtureEntry in TestsConfig.Instance.Tests.Keys) {
-
-					bool originalFixtureOn = fixtureEntry.WillFixtureTests;
-					fixtureEntry.WillFixtureTests = GUILayout.Toggle (fixtureEntry.WillFixtureTests, fixtureEntry.FixtureType.Name);
+				foreach (FixtureEntry fixtureEntry in TestsConfig.Instance.Tests.Keys) 
+				{
+					bool originalFixtureOn = fixtureEntry.WillRun;
+					fixtureEntry.WillRun = GUILayout.Toggle (fixtureEntry.WillRun, fixtureEntry.FixtureType.Name);
 
 					EditorUtil.StartIndent (TESTS_INDENT);
 					{
-						if (originalFixtureOn != fixtureEntry.WillFixtureTests) {
-							foreach (TestEntry entry in TestsConfig.Instance.Tests[fixtureEntry]) {
-								entry.WillRunTest = fixtureEntry.WillFixtureTests;
+						if (originalFixtureOn != fixtureEntry.WillRun) 
+						{
+							foreach (TestEntry entry in TestsConfig.Instance.Tests[fixtureEntry])
+							{
+								entry.WillRun = fixtureEntry.WillRun;
 							}
 							SaveTests ();
 
 						} else {
-							foreach (TestEntry entry in TestsConfig.Instance.Tests[fixtureEntry]) {
-								entry.WillRunTest = GUILayout.Toggle (entry.WillRunTest, entry.TestMethod.Name);
+							foreach (TestEntry entry in TestsConfig.Instance.Tests[fixtureEntry]) 
+							{
+								entry.WillRun = GUILayout.Toggle (entry.WillRun, entry.TestMethod.Name);
 
 								bool allOff = true;
-								foreach (TestEntry otherEntry in TestsConfig.Instance.Tests[fixtureEntry]) {
-									if (otherEntry.WillRunTest) {
+								foreach (TestEntry otherEntry in TestsConfig.Instance.Tests[fixtureEntry])
+								{
+									if (otherEntry.WillRun) 
+									{
 										allOff = false;
 									}
 								}
 
-								if (fixtureEntry.WillFixtureTests != !allOff) {
-									fixtureEntry.WillFixtureTests = !allOff;
+								if (fixtureEntry.WillRun != !allOff) {
+									fixtureEntry.WillRun = !allOff;
 									SaveTests ();
 								}
 							}
-
 						}
 					}
 					EditorUtil.EndIndent ();
@@ -281,89 +290,46 @@ namespace UnTested
 			EditorGUILayout.EndScrollView();
 		}
 		
-		void OnGUIWhilePlaying ()
+		private void OnGUIWhilePlaying ()
 		{
 			selectedBoxStyle = new GUIStyle (GUI.skin.box);
 			selectedBoxStyle.normal.background = EditorGUIUtility.whiteTexture;
 
-			// Progress Bar
-			float percentDone = 0.0f;
-			if (TestsConfig.Instance.NumberOfTestsToRun > 0) {
-				percentDone = (float)TestRunner.Instance.NumCompleted / (float)TestsConfig.Instance.NumberOfTestsToRun;
-			}
-			string percentMsg = string.Format ("Tests Completed ({0}/{1})", TestRunner.Instance.NumCompleted, TestsConfig.Instance.NumberOfTestsToRun);
-
-			DrawProgessBar (new Vector2 (0.0f, 0.0f), new Vector2 (this.position.width, PROGRESS_BAR_HEIGHT), percentDone, percentMsg);
-
-			EditorGUILayout.BeginHorizontal ();
-			{
-				if (TestRunner.Instance.FinishedRunning) {
-					DrawStopButton ("Done");
-				} else {
-					DrawPauseResume ();
-					DrawStopButton ("Stop");
-				}
-			}
-			EditorGUILayout.EndHorizontal ();
-
-			GUI.color = Color.white; 
-
+			DrawProgessBar ();
+			DrawWhilePlayingButtons();
+			
+			EditorUtil.SetAllColors(Color.white);
 			scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
 			{
 				// Test Fixtures
-				foreach (FixtureEntry fixtureEntry in TestsConfig.Instance.Tests.Keys) {
-
-					if (fixtureEntry.WillFixtureTests == false)
+				foreach (FixtureEntry fixtureEntry in TestsConfig.Instance.Tests.Keys)
+				{
+					if (!fixtureEntry.WillRun)
 						continue;
 
-					GUIStyle boxStyle = GUI.skin.box;
-					Color boxColor = Color.white;
-
-					if(fixtureEntry == selectedFixture)
+					Rect fixtureRect = EditorGUILayout.BeginHorizontal (GetSelectionBox(fixtureEntry == selectedFixture));
 					{
-						boxStyle = selectedBoxStyle;
-						boxColor = new Color (0.0f, 0.0f, 0.5f);
-					}
-
-					GUI.backgroundColor = boxColor;
-					Rect fixtureRect = EditorGUILayout.BeginHorizontal (boxStyle);
-					{
-						SetColorFromState (fixtureEntry.State);
+						GUI.contentColor = GetColorFromTestState (fixtureEntry.State);
 
 						if(GUILayout.Button (fixtureEntry.FixtureType.Name, GUI.skin.label))
 						{
 							selectedFixture = fixtureEntry;
 							selectedTest = null;
 						}
-
-						GUI.color = Color.white;
-
-						float x = fixtureRect.width - PASS_FAIL_SIZE;
-						float y = fixtureRect.y + PASS_FAIL_HEIGHT_PADDING;
-						Rect stateRect = new Rect (x, y, PASS_FAIL_SIZE, PASS_FAIL_SIZE);
-
-						GUI.DrawTexture (stateRect, GetTextureForState (fixtureEntry.State));
+					
+						DrawTestStateIcon(fixtureRect, fixtureEntry.State);
 					}
 					EditorGUILayout.EndHorizontal ();
 
 					EditorUtil.StartIndent (TESTS_INDENT);
 					{
-						foreach (TestEntry entry in TestsConfig.Instance.Tests[fixtureEntry]) {
-							if (entry.WillRunTest) {
-
-								boxStyle = GUI.skin.box;
-								boxColor = Color.white;
-
-								if(entry == selectedTest)
+						foreach (TestEntry entry in TestsConfig.Instance.Tests[fixtureEntry]) 
+						{
+							if (entry.WillRun) 
+							{
+								Rect entryRect = EditorGUILayout.BeginHorizontal (GetSelectionBox(entry == selectedTest));
 								{
-									boxStyle = selectedBoxStyle;
-									boxColor = new Color (0.0f, 0.0f, 0.5f);
-								}
-
-								GUI.backgroundColor = boxColor;
-								Rect entryRect = EditorGUILayout.BeginHorizontal (boxStyle);
-								{
-									SetColorFromState (entry.State);
+									GUI.contentColor = GetColorFromTestState (entry.State);
 
 									if(GUILayout.Button (entry.TestMethod.Name, GUI.skin.label))
 									{
@@ -371,61 +337,32 @@ namespace UnTested
 										selectedFixture = null;
 									}
 
-									GUI.color = Color.white;
-									GUI.contentColor = Color.white;
-
-									float x = fixtureRect.width - (PASS_FAIL_SIZE);
-									float y = entryRect.y + PASS_FAIL_HEIGHT_PADDING;
-									Rect stateImageRect = new Rect (x, y, PASS_FAIL_SIZE, PASS_FAIL_SIZE);
-									GUI.DrawTexture (stateImageRect, GetTextureForState (entry.State));
+									Rect drawRect = fixtureRect;
+									drawRect.y = entryRect.y;
+									DrawTestStateIcon(drawRect, entry.State);
 								}
 								EditorGUILayout.EndHorizontal ();
-
 							}
 						}
 					}
 					EditorUtil.EndIndent ();
 				}
 			}
-
-			GUI.color = Color.white;
-			GUI.backgroundColor = Color.white;
-			GUI.contentColor = Color.white;
-
 			EditorGUILayout.EndScrollView();
 
-			consoleScrollPos = EditorGUILayout.BeginScrollView(consoleScrollPos, true, true, GUI.skin.horizontalScrollbar,
-			                                                   GUI.skin.verticalScrollbar, GUI.skin.box,
-			                                                   GUILayout.Width (this.position.width), GUILayout.Height (200.0f));
-			{
-				if (selectedFixture != null) {
-					foreach (LogEntry log in selectedFixture.Logs) {
-						HelpBoxFromLogType (log.LogMsg, log.LogType);
-					}
-				} else if (selectedTest != null) {
-					foreach (LogEntry log in selectedTest.Logs) {
-						HelpBoxFromLogType (log.LogMsg, log.LogType);
-					}
-				}
-			}
-			EditorGUILayout.EndScrollView();
+			DrawLogWindow();
 		}
 
-		void OnGUI()
+		private void OnGUI()
 		{
-			if(EditorApplication.isCompiling || loading) {
+			if(EditorApplication.isCompiling) {
 				GUILayout.Label ("Compiling...");
 			} else if(Application.isPlaying) {
 				OnGUIWhilePlaying ();
 			} else {
-				OnGUINotRunning ();
+				OnGUINotPlaying ();
 			}
 		}
 		#endregion
-
-		void Update () 
-		{
-			this.Repaint ();
-		}
 	}
 }
