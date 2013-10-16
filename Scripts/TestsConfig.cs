@@ -109,7 +109,6 @@ namespace UnTested
 			if(oldStr != configureString)
 			{
 				Reload();
-				oldStr = configureString;
 			}
 		}
 		#endregion
@@ -204,6 +203,8 @@ namespace UnTested
 					}
 				}
 			}
+			
+			oldStr = configureString;
 		}
 
 		private void LoadTestsFromAssembly () 

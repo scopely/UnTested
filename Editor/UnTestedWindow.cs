@@ -92,7 +92,9 @@ namespace UnTested
 		}
 		#endregion
 		
-		#region OnGUI calls
+		#region OnGUI
+		
+		#region Getters
 		private Color GetColorFromTestState(TestState state)
 		{
 			Color color = Color.white;
@@ -134,41 +136,9 @@ namespace UnTested
 			
 			return boxStyle;
 		}
+		#endregion
 
-		private void DrawProgessBar()
-		{
-			float percentDone = 0.0f;
-			if (TestsConfig.Instance.NumberOfTestsToRun > 0) {
-				percentDone = (float)TestRunner.Instance.NumberOfTestsCompleted / (float)TestsConfig.Instance.NumberOfTestsToRun;
-			}
-			string percentMsg = string.Format ("Tests Completed ({0}/{1})", TestRunner.Instance.NumberOfTestsCompleted, TestsConfig.Instance.NumberOfTestsToRun);
-		
-			Color bgColor = new Color (0.0f, PROGRESS_BAR_BG_FILL, 0.0f);
-			Color fgColor = new Color (0.0f, PROGRESS_BAR_FG_FILL, 0.0f);
-
-			if(TestRunner.Instance.FailedTestCounter > 0) {
-				bgColor = new Color (PROGRESS_BAR_BG_FILL, 0.0f, 0.0f);
-				fgColor = new Color (PROGRESS_BAR_FG_FILL, 0.0f, 0.0f);
-			}
-
-			EditorUtil.DrawProgessBar(new Vector2 (0.0f, 0.0f), new Vector2 (this.position.width, PROGRESS_BAR_HEIGHT), percentDone, percentMsg, bgColor, fgColor, "BoldLabel");	
-		}
-
-		private void DrawPauseResumeButton ()
-		{
-			string pauseButtonStr = EditorApplication.isPaused ? "Resume" : "Pause";
-			if (GUILayout.Button (pauseButtonStr)) {
-				EditorApplication.isPaused = !EditorApplication.isPaused;
-			}
-		}
-
-		private void DrawStopButton (string title)
-		{
-			if (GUILayout.Button (title)) {
-				EditorApplication.isPlaying = false;
-			}
-		}
-		
+		#region Draw Functions
 		private void DrawNotPlayingButtons ()
 		{
 			EditorGUILayout.BeginHorizontal ();
@@ -201,6 +171,25 @@ namespace UnTested
 			EditorGUILayout.EndHorizontal ();
 		}
 		
+		private void DrawProgessBar()
+		{
+			float percentDone = 0.0f;
+			if (TestsConfig.Instance.NumberOfTestsToRun > 0) {
+				percentDone = (float)TestRunner.Instance.NumberOfTestsCompleted / (float)TestsConfig.Instance.NumberOfTestsToRun;
+			}
+			string percentMsg = string.Format ("Tests Completed ({0}/{1})", TestRunner.Instance.NumberOfTestsCompleted, TestsConfig.Instance.NumberOfTestsToRun);
+		
+			Color bgColor = new Color (0.0f, PROGRESS_BAR_BG_FILL, 0.0f);
+			Color fgColor = new Color (0.0f, PROGRESS_BAR_FG_FILL, 0.0f);
+
+			if(TestRunner.Instance.FailedTestCounter > 0) {
+				bgColor = new Color (PROGRESS_BAR_BG_FILL, 0.0f, 0.0f);
+				fgColor = new Color (PROGRESS_BAR_FG_FILL, 0.0f, 0.0f);
+			}
+
+			EditorUtil.DrawProgessBar(new Vector2 (0.0f, 0.0f), new Vector2 (this.position.width, PROGRESS_BAR_HEIGHT), percentDone, percentMsg, bgColor, fgColor, "BoldLabel");	
+		}
+		
 		private void DrawWhilePlayingButtons ()
 		{
 			EditorGUILayout.BeginHorizontal ();
@@ -213,6 +202,21 @@ namespace UnTested
 				}
 			}
 			EditorGUILayout.EndHorizontal ();
+		}
+
+		private void DrawPauseResumeButton ()
+		{
+			string pauseButtonStr = EditorApplication.isPaused ? "Resume" : "Pause";
+			if (GUILayout.Button (pauseButtonStr)) {
+				EditorApplication.isPaused = !EditorApplication.isPaused;
+			}
+		}
+
+		private void DrawStopButton (string title)
+		{
+			if (GUILayout.Button (title)) {
+				EditorApplication.isPlaying = false;
+			}
 		}
 		
 		private void DrawTestStateIcon(Rect refRect, TestState state)
@@ -246,7 +250,20 @@ namespace UnTested
 			}
 			EditorGUILayout.EndScrollView();
 		}
+		#endregion
 
+		#region OnGUI Heads
+		private void OnGUI()
+		{
+			if(EditorApplication.isCompiling) {
+				GUILayout.Label ("Compiling...");
+			} else if(Application.isPlaying) {
+				OnGUIWhilePlaying ();
+			} else {
+				OnGUINotPlaying ();
+			}
+		}
+		
 		private void OnGUINotPlaying ()
 		{
 			Undo.SetSnapshotTarget(TestsConfig.Instance, "Config Changed");
@@ -306,9 +323,11 @@ namespace UnTested
 		
 		private void OnGUIWhilePlaying ()
 		{
-			selectedBoxStyle = new GUIStyle (GUI.skin.box);
-			selectedBoxStyle.normal.background = EditorGUIUtility.whiteTexture;
-
+			if(selectedBoxStyle == null) {
+				selectedBoxStyle = new GUIStyle (GUI.skin.box);
+				selectedBoxStyle.normal.background = EditorGUIUtility.whiteTexture;
+			}
+			
 			DrawProgessBar ();
 			DrawWhilePlayingButtons();
 			
@@ -366,17 +385,7 @@ namespace UnTested
 
 			DrawLogWindow();
 		}
-
-		private void OnGUI()
-		{
-			if(EditorApplication.isCompiling) {
-				GUILayout.Label ("Compiling...");
-			} else if(Application.isPlaying) {
-				OnGUIWhilePlaying ();
-			} else {
-				OnGUINotPlaying ();
-			}
-		}
+		#endregion
 		#endregion
 	}
 }
