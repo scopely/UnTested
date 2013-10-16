@@ -238,7 +238,8 @@ namespace UnTested
 
 		private void HandleTestLog(string logString, string stackTrace, LogType logType)
 		{
-			if(logType == LogType.Assert || logType == LogType.Error || logType == LogType.Exception)
+			bool showStack = !logString.Contains("TestFlowException:");
+			if(showStack && (logType == LogType.Assert || logType == LogType.Error || logType == LogType.Exception))
 			{
 				logString += "\n\n" + stackTrace;
 			}
@@ -275,7 +276,7 @@ namespace UnTested
 					if (setupException != null) {
 						ReportSetupError (fixtureEntry.FixtureType, entry.Method, entry.Method, setupException);
 						entry.State = TestState.Failed;
-						Debug.LogError ("Failed Assembly Setup [" + entry.Method.Name + "] on [" + fixtureEntry.FixtureType.Name + "]");
+						Debug.LogError ("TestFlowException: Failed Assembly Setup [" + entry.Method.Name + "] on [" + fixtureEntry.FixtureType.Name + "]");
 
 					} else {
 						entry.State = TestState.Passed;
@@ -342,7 +343,7 @@ namespace UnTested
 											ReportSetupError (fixtureEntry.FixtureType, setupCandidateMethod, testEntry.TestMethod, setupException);
 											fixtureError = true;
 											testEntry.SetupState = TestState.Failed;
-											Debug.LogError ("Failed Setup [" + setupCandidateMethod.Name + "] on [" + fixtureEntry.FixtureType.Name + "]");
+											Debug.LogError ("TestFlowException: Failed Setup [" + setupCandidateMethod.Name + "] on [" + fixtureEntry.FixtureType.Name + "]");
 
 										} else {
 											testEntry.SetupState = TestState.Passed;
@@ -381,14 +382,14 @@ namespace UnTested
 									ReportTestError (fixtureEntry.FixtureType, testEntry.TestMethod, testException);
 									testEntry.State = TestState.Failed;
 									fixtureError = true;
-									Debug.LogError ("Failed Test [" + testEntry.TestMethod.Name + "] on [" + fixtureEntry.FixtureType.Name + "]");
+									Debug.LogError ("TestFlowException: Failed Test [" + testEntry.TestMethod.Name + "] on [" + fixtureEntry.FixtureType.Name + "]");
 								} else {
 									testPassed = true;
 								}
 							} else {
 								ReportTestError (fixtureEntry.FixtureType, testEntry.TestMethod, new Exception("TestFlowException: Setup Failed"));
 								testEntry.State = TestState.Failed;
-								Debug.LogError ("Failed Test [" + testEntry.TestMethod.Name + "] on [" + fixtureEntry.FixtureType.Name + "]");
+								Debug.LogError ("TestFlowException: Failed Test [" + testEntry.TestMethod.Name + "] on [" + fixtureEntry.FixtureType.Name + "]");
 							}
 
 							// Tear Down
@@ -420,12 +421,12 @@ namespace UnTested
 											ReportTeardownError (fixtureEntry.FixtureType, teardownCandidateMethod, testEntry.TestMethod, teardownException);
 											fixtureError = true;
 											testEntry.TeardownState = TestState.Failed;
-											Debug.LogError ("Failed Teardown [" + teardownCandidateMethod.Name + "] on [" + fixtureEntry.FixtureType.Name + "]");
+											Debug.LogError ("TestFlowException: Failed Teardown [" + teardownCandidateMethod.Name + "] on [" + fixtureEntry.FixtureType.Name + "]");
 
 											if(testPassed) {
 												ReportTestError (fixtureEntry.FixtureType, testEntry.TestMethod, new Exception("TestFlowException: Teardown Failed"));
 												testEntry.State = TestState.Failed;
-												Debug.LogError ("Failed Test [" + testEntry.TestMethod.Name + "] on [" + fixtureEntry.FixtureType.Name + "]");
+												Debug.LogError ("TestFlowException: Failed Test [" + testEntry.TestMethod.Name + "] on [" + fixtureEntry.FixtureType.Name + "]");
 											}
 										} else {
 											testEntry.TeardownState = TestState.Passed;
@@ -493,7 +494,7 @@ namespace UnTested
 					{
 						ReportTeardownError (fixtureEntry.FixtureType, entry.Method, entry.Method, setupException);
 						entry.State = TestState.Failed;
-						Debug.LogError ("Failed Assembly Teardown [" + entry.Method.Name + "] on [" + fixtureEntry.FixtureType.Name + "]");
+						Debug.LogError ("TestFlowException: Failed Assembly Teardown [" + entry.Method.Name + "] on [" + fixtureEntry.FixtureType.Name + "]");
 
 					} else {
 						entry.State = TestState.Passed;
