@@ -70,6 +70,7 @@ namespace UnTested
 		#region Private Fields
 		[SerializeField]
 		private string configureString;
+		private string oldStr;
 		#endregion
 		
 		#region Lifecycle
@@ -86,21 +87,30 @@ namespace UnTested
 			}
 		}
 
-		public void OnEnable ()
+		private void OnEnable ()
 		{
 			hideFlags = HideFlags.HideAndDontSave;
 			instance = this;
 			Reload ();
 		}
 
-		public void OnDisable ()
+		private void OnDisable ()
 		{
 			instance = null;
 		}
 
-		public void OnDestroy ()
+		private void OnDestroy ()
 		{
 			instance = null;
+		}
+		
+		public void Update ()
+		{			
+			if(oldStr != configureString)
+			{
+				Reload();
+				oldStr = configureString;
+			}
 		}
 		#endregion
 		
@@ -152,6 +162,7 @@ namespace UnTested
 				}
 			}
 
+			oldStr = configureString;
 		}
 
 		private void ReadConfigFromString()
