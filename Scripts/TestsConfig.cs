@@ -123,6 +123,8 @@ namespace UnTested
 					entry.WillRun = onOff;
 				}
 			}
+
+			Persist ();
 		}
 		
 		public void Reload () {

@@ -84,12 +84,6 @@ namespace UnTested
 				EditorApplication.OpenScene(UNIT_TESTS_SCENE);
 			}
 		}
-		
-		private void SaveTests()
-		{
-			TestsConfig.Instance.Persist ();
-			EditorUtility.SetDirty (TestsConfig.Instance);
-		}
 		#endregion
 		
 		#region OnGUI
@@ -148,13 +142,11 @@ namespace UnTested
 				// All / None Buttons
 				if (GUILayout.Button ("All")) {
 					TestsConfig.Instance.SetAllOn (true);
-					SaveTests ();
 					return;
 				}
 
 				if (GUILayout.Button ("None")) {
 					TestsConfig.Instance.SetAllOn (false);
-					SaveTests ();
 					return;
 				}
 
@@ -288,7 +280,7 @@ namespace UnTested
 							{
 								entry.WillRun = fixtureEntry.WillRun;
 							}
-							SaveTests ();
+							TestsConfig.Instance.Persist ();
 
 						} else {
 							foreach (TestEntry entry in TestsConfig.Instance.Tests[fixtureEntry]) 
@@ -307,9 +299,9 @@ namespace UnTested
 
 								if (fixtureEntry.WillRun != !allOff) {
 									fixtureEntry.WillRun = !allOff;
-									SaveTests ();
+									TestsConfig.Instance.Persist ();
 								} else if(originalTestOn != entry.WillRun) {
-									SaveTests ();
+									TestsConfig.Instance.Persist ();
 								}
 							}
 						}

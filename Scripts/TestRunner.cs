@@ -213,7 +213,11 @@ namespace UnTested
 		{
 			int code = 0;
 			if(FailedTestCounter > 0)
+				code = 2;
+			else if(failedSetupCounter > 0)
 				code = 1;
+			else if(failedTeardownCounter > 0)
+				code = 3;
 			return code;
 		}
 		#endregion
