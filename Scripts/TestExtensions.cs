@@ -2,6 +2,9 @@
 using System.Collections;
 using System;
 
+/// <summary>
+/// Test extensions - http://twistedoakstudios.com/blog/Post83_coroutines-more-than-you-want-to-know
+/// </summary>
 namespace UnTested
 {
 	public static class TestExtensions 
