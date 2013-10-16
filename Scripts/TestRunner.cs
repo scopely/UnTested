@@ -12,26 +12,7 @@ namespace UnTested
 {
 	public class TestRunner : Singleton<TestRunner>
 	{
-		public event Action OnAllTestsFinished;
-		public bool FinishedRunning = false;
-
-		private List<ITestReport> failedSetupReports = null;
-		private List<ITestReport> failedTestReports = null;
-		private List<ITestReport> failedTeardownReports = null;
-
-		[HideInInspector]
-		public int NumCompleted = 0;
-		private int failedSetupCounter = 0;
-		[HideInInspector]
-		public int FailedTestCounter = 0;
-		private int failedTeardownCounter = 0;
-
-		private FixtureEntry currentFixture = null;
-		private TestEntry currentTest = null;
-
-		private bool areWeHeadless = false;
-
-		#region Reports
+		#region Report Classes
 		public abstract class ITestReport
 		{
 			public abstract string MessageReport ();
@@ -105,7 +86,32 @@ namespace UnTested
 				return string.Format ("Fixture: [{0}] Teardown: [{1}] on Test: [{2}] Error: {3}\n", fixtureName, teardownName, testName, errorMessage);
 			}
 		}
+		#endregion
+	
+		#region Events
+		public event Action OnAllTestsFinished;
+		#endregion
+		
+		#region Public Properties
+		[HideInInspector]
+		public int NumberOfTestsCompleted = 0;
+		[HideInInspector]
+		public int FailedTestCounter = 0;
+		[HideInInspector]
+		public bool FinishedRunning = false;
+		#endregion
 
+		#region Private Fields
+		private List<ITestReport> failedSetupReports = null;
+		private List<ITestReport> failedTestReports = null;
+		private List<ITestReport> failedTeardownReports = null;
+		private FixtureEntry currentFixture = null;
+		private TestEntry currentTest = null;
+		private int failedSetupCounter = 0;
+		private int failedTeardownCounter = 0;
+		#endregion
+
+		#region Reports
 		private void ReportSetupError(Type fixtureType, MethodInfo setupMethod, MethodInfo testMethod, Exception e)
 		{
 			++failedSetupCounter;
@@ -128,7 +134,7 @@ namespace UnTested
 		{
 			if(FailedTestCounter > 0 || failedSetupCounter > 0 || failedTeardownCounter > 0) {
 				string log = string.Format ("{0} Tests Run, {1} Tests Failed, {2} Tests Passed, {3} Setups Failed, {4} Teardowns Failed\n",
-				                            NumCompleted, FailedTestCounter, NumCompleted - FailedTestCounter, failedSetupCounter, failedTeardownCounter);
+				                            NumberOfTestsCompleted, FailedTestCounter, NumberOfTestsCompleted - FailedTestCounter, failedSetupCounter, failedTeardownCounter);
 
 				if(failedSetupCounter > 0)
 					log += CreateErrorReportChunk ("Failed Setups", failedSetupReports);
@@ -139,7 +145,7 @@ namespace UnTested
 
 				Debug.LogError(log);
 			} else {
-				Debug.Log (string.Format ("All {0} Tests Passed", NumCompleted));
+				Debug.Log (string.Format ("All {0} Tests Passed", NumberOfTestsCompleted));
 			}
 		}
 
@@ -157,24 +163,22 @@ namespace UnTested
 		}
 		#endregion
 
-		void OnEnable ()
+		#region Initialization
+		private void OnEnable ()
 		{
-			#if UNITY_EDITOR
-			areWeHeadless = AreWeRunningHeadless();
-			#endif
-
-			RunAllTests ();
+			RunTests ();
 		}
-
-		public void RunAllTests() 
+		
+		private void RunTests() 
 		{
 			failedSetupReports = new List<ITestReport>();
 			failedTestReports = new List<ITestReport> ();
 			failedTeardownReports = new List<ITestReport> ();
 
-			StartCoroutine(RunAllTestsCoroutine());
+			StartCoroutine(RunTestsWithOutputCoroutine());
 		}
-		private IEnumerator RunAllTestsCoroutine() 
+		
+		private IEnumerator RunTestsWithOutputCoroutine() 
 		{
 			yield return StartCoroutine(RunAssemblySetupCoroutine());
 			yield return StartCoroutine(RunTestsCoroutine());
@@ -182,13 +186,15 @@ namespace UnTested
 			OutputSummary ();
 			TestsFinished (); 
 		}
+		#endregion
 
+		#region Tests Finished
 		private void TestsFinished ()
 		{
 			#if UNITY_EDITOR
 			// If Headless Quit	
 			if(AreWeRunningHeadless())
-				EditorApplication.Exit(0);
+				EditorApplication.Exit(GetExitCode());
 			#endif
 
 			if (OnAllTestsFinished != null)
@@ -196,13 +202,23 @@ namespace UnTested
 
 			FinishedRunning = true;
 		}
-
+		
 		private bool AreWeRunningHeadless () {
 			String[] arguments = Environment.GetCommandLineArgs();
 			string args = string.Join(", ", arguments);
 			return args.Contains("-batchmode");
 		}
-
+		
+		private int GetExitCode ()
+		{
+			int code = 0;
+			if(FailedTestCounter > 0)
+				code = 1;
+			return code;
+		}
+		#endregion
+		
+		#region Running
 		private Exception RunNormalTest(Type fixtureType, object fixtureInstance, MethodInfo methodInfo)
 		{
 			try {
@@ -215,7 +231,7 @@ namespace UnTested
 			return null;
 		}
 
-		private TestCoroutine<Exception> RunTest(object fixtureInstance, MethodInfo testMethod)
+		private TestCoroutine<Exception> RunAsyncTest(object fixtureInstance, MethodInfo testMethod)
 		{
 			return TestExtensions.StartTestCoroutine<Exception>(this, (IEnumerator)testMethod.Invoke(fixtureInstance, new object[] {}));
 		}
@@ -246,7 +262,7 @@ namespace UnTested
 
 					// Async or Regular
 					if (entry.Method.ReturnType == typeof(IEnumerator)) {
-						TestCoroutine<Exception> setupCoroutine = RunTest (fixtureInstance, entry.Method);
+						TestCoroutine<Exception> setupCoroutine = RunAsyncTest (fixtureInstance, entry.Method);
 						yield return setupCoroutine.coroutine;
 						if (setupCoroutine.Exception != null) {
 							Debug.LogException (setupCoroutine.Exception);
@@ -269,58 +285,22 @@ namespace UnTested
 			}
 		}
 		
-		private IEnumerator RunAssemblyTeardownCoroutine()
-		{
-			foreach (FixtureEntry fixtureEntry in TestsConfig.Instance.AssemblyTeardowns.Keys) 
-			{
-				object fixtureInstance = fixtureEntry.FixtureType.GetConstructor (Type.EmptyTypes).Invoke (new object[] { });
-			
-				foreach (AssemblyEntry entry in TestsConfig.Instance.AssemblyTeardowns[fixtureEntry]) 
-				{
-					Debug.Log ("Running Assembly Teardown [" + entry.Method.Name + "] on [" + fixtureEntry.FixtureType.Name + "]");
-					entry.State = TestState.InProgress;
-					Exception setupException = null;
-
-					// Async or Regular
-					if (entry.Method.ReturnType == typeof(IEnumerator)) {
-						TestCoroutine<Exception> teardownCoroutine = RunTest (fixtureInstance, entry.Method);
-						yield return teardownCoroutine.coroutine;
-						if (teardownCoroutine.Exception != null) {
-							Debug.LogException (teardownCoroutine.Exception);
-							setupException = teardownCoroutine.Exception;
-						}
-					} else {
-						setupException = RunNormalTest (fixtureEntry.FixtureType, fixtureInstance, entry.Method);
-					}
-
-					if (setupException != null) {
-						ReportTeardownError (fixtureEntry.FixtureType, entry.Method, entry.Method, setupException);
-						entry.State = TestState.Failed;
-						Debug.LogError ("Failed Assembly Teardown [" + entry.Method.Name + "] on [" + fixtureEntry.FixtureType.Name + "]");
-
-					} else {
-						entry.State = TestState.Passed;
-						Debug.Log ("Finished Assembly Teardown [" + entry.Method.Name + "] on [" + fixtureEntry.FixtureType.Name + "]");
-					}
-				}
-			}
-		}
-		
 		private IEnumerator RunTestsCoroutine()
 		{
 			Application.RegisterLogCallback (HandleTestLog);
 
-			foreach (FixtureEntry fixtureEntry in TestsConfig.Instance.Tests.Keys) {
-				if (fixtureEntry.WillFixtureTests || areWeHeadless) {
-
+			foreach (FixtureEntry fixtureEntry in TestsConfig.Instance.Tests.Keys) 
+			{
+				if (fixtureEntry.WillRun) 
+				{
 					currentFixture = fixtureEntry;
 					fixtureEntry.State = TestState.InProgress;
 					bool fixtureError = false;
 
-					foreach (TestEntry testEntry in TestsConfig.Instance.Tests[fixtureEntry]) {
-
-						if (testEntry.WillRunTest || areWeHeadless) {
-
+					foreach (TestEntry testEntry in TestsConfig.Instance.Tests[fixtureEntry]) 
+					{
+						if (testEntry.WillRun) 
+						{
 							currentTest = testEntry;
 
 							object fixtureInstance = null;
@@ -331,10 +311,13 @@ namespace UnTested
 
 							// Run Setup NOTE: We need too loop backward through the Methods to Handle Base Dependencies
 							MethodInfo[] setupMethodInfos = fixtureEntry.FixtureType.GetMethods (System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public);
-							for (int m = setupMethodInfos.Length-1; m >= 0; --m) {
+							for (int m = setupMethodInfos.Length-1; m >= 0; --m) 
+							{
 								MethodInfo setupCandidateMethod = setupMethodInfos [m];
-								foreach (object setupCandidateAttribute in setupCandidateMethod.GetCustomAttributes(true)) {
-									if (setupCandidateAttribute is TestSetupAttribute) {
+								foreach (object setupCandidateAttribute in setupCandidateMethod.GetCustomAttributes(true)) 
+								{
+									if (setupCandidateAttribute is TestSetupAttribute) 
+									{
 										Debug.Log ("Running Setup [" + setupCandidateMethod.Name + "] on [" + fixtureEntry.FixtureType.Name + "]");
 										testEntry.SetupState = TestState.InProgress;
 										hasSetup = true;
@@ -342,8 +325,9 @@ namespace UnTested
 										Exception setupException = null;
 
 										// Async or Regular
-										if (setupCandidateMethod.ReturnType == typeof(IEnumerator)) {
-											TestCoroutine<Exception> setupCoroutine = RunTest (fixtureInstance, setupCandidateMethod);
+										if (setupCandidateMethod.ReturnType == typeof(IEnumerator)) 
+										{
+											TestCoroutine<Exception> setupCoroutine = RunAsyncTest (fixtureInstance, setupCandidateMethod);
 											yield return setupCoroutine.coroutine;
 											if (setupCoroutine.Exception != null) {
 												Debug.LogException (setupCoroutine.Exception);
@@ -353,7 +337,8 @@ namespace UnTested
 											setupException = RunNormalTest (fixtureEntry.FixtureType, fixtureInstance, setupCandidateMethod);
 										}
 
-										if (setupException != null) {
+										if (setupException != null) 
+										{
 											ReportSetupError (fixtureEntry.FixtureType, setupCandidateMethod, testEntry.TestMethod, setupException);
 											fixtureError = true;
 											testEntry.SetupState = TestState.Failed;
@@ -367,7 +352,8 @@ namespace UnTested
 								}
 							}
 
-							if(!hasSetup) {
+							if(!hasSetup) 
+							{
 								testEntry.SetupState = TestState.Passed;
 							}
 
@@ -378,8 +364,9 @@ namespace UnTested
 								Debug.Log ("Running Test [" + testEntry.TestMethod.Name + "] on [" + fixtureEntry.FixtureType.Name + "]");
 								Exception testException = null;
 
-								if (testEntry.TestMethod.ReturnType == typeof(IEnumerator)) {
-									TestCoroutine<Exception> testRoutine = RunTest (fixtureInstance, testEntry.TestMethod);
+								if (testEntry.TestMethod.ReturnType == typeof(IEnumerator)) 
+								{
+									TestCoroutine<Exception> testRoutine = RunAsyncTest (fixtureInstance, testEntry.TestMethod);
 									yield return testRoutine.coroutine;
 									if (testRoutine.Exception != null) {
 										Debug.LogException (testRoutine.Exception);
@@ -389,7 +376,8 @@ namespace UnTested
 									testException = RunNormalTest (fixtureEntry.FixtureType, fixtureInstance, testEntry.TestMethod);
 								}
 
-								if (testException != null) {
+								if (testException != null)
+								{
 									ReportTestError (fixtureEntry.FixtureType, testEntry.TestMethod, testException);
 									testEntry.State = TestState.Failed;
 									fixtureError = true;
@@ -405,16 +393,19 @@ namespace UnTested
 
 							// Tear Down
 							bool hasTeardown = false;
-							foreach (MethodInfo teardownCandidateMethod in fixtureEntry.FixtureType.GetMethods(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public)) {
-								foreach (object teardownCandidateAttribute in teardownCandidateMethod.GetCustomAttributes(true)) {
+							foreach (MethodInfo teardownCandidateMethod in fixtureEntry.FixtureType.GetMethods(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public))
+							{
+								foreach (object teardownCandidateAttribute in teardownCandidateMethod.GetCustomAttributes(true)) 
+								{
 									if (teardownCandidateAttribute is TestTeardownAttribute) {
 										Debug.Log ("Running Teardown [" + teardownCandidateMethod.Name + "] on [" + fixtureEntry.FixtureType.Name + "]");
 										testEntry.TeardownState = TestState.InProgress;
 										Exception teardownException = null;
 										hasTeardown = true;
 
-										if (teardownCandidateMethod.ReturnType == typeof(IEnumerator)) {
-											TestCoroutine<Exception> teardownRoutine = RunTest (fixtureInstance, teardownCandidateMethod);
+										if (teardownCandidateMethod.ReturnType == typeof(IEnumerator)) 
+										{
+											TestCoroutine<Exception> teardownRoutine = RunAsyncTest (fixtureInstance, teardownCandidateMethod);
 											yield return teardownRoutine.coroutine;
 											if (teardownRoutine.Exception != null) {
 												Debug.LogException (teardownRoutine.Exception);
@@ -424,7 +415,8 @@ namespace UnTested
 											teardownException = RunNormalTest (fixtureEntry.FixtureType, fixtureInstance, teardownCandidateMethod);
 										}
 
-										if (teardownException != null) {
+										if (teardownException != null) 
+										{
 											ReportTeardownError (fixtureEntry.FixtureType, teardownCandidateMethod, testEntry.TestMethod, teardownException);
 											fixtureError = true;
 											testEntry.TeardownState = TestState.Failed;
@@ -443,16 +435,18 @@ namespace UnTested
 								}
 							}
 
-							if(!hasTeardown) {
+							if(!hasTeardown) 
+							{
 								testEntry.TeardownState = TestState.Passed;
 							}
 
-							if(testEntry.State != TestState.Failed) {
+							if(testEntry.State != TestState.Failed) 
+							{
 								testEntry.State = TestState.Passed;
 								Debug.Log ("Passed Test [" + testEntry.TestMethod.Name + "] on [" + fixtureEntry.FixtureType.Name + "]");
 							}
 
-							++NumCompleted;
+							++NumberOfTestsCompleted;
 						}
 					}
 
@@ -469,5 +463,45 @@ namespace UnTested
 
 			Application.RegisterLogCallback (null);
 		}
+		
+		private IEnumerator RunAssemblyTeardownCoroutine()
+		{
+			foreach (FixtureEntry fixtureEntry in TestsConfig.Instance.AssemblyTeardowns.Keys) 
+			{
+				object fixtureInstance = fixtureEntry.FixtureType.GetConstructor (Type.EmptyTypes).Invoke (new object[] { });
+			
+				foreach (AssemblyEntry entry in TestsConfig.Instance.AssemblyTeardowns[fixtureEntry]) 
+				{
+					Debug.Log ("Running Assembly Teardown [" + entry.Method.Name + "] on [" + fixtureEntry.FixtureType.Name + "]");
+					entry.State = TestState.InProgress;
+					Exception setupException = null;
+
+					// Async or Regular
+					if (entry.Method.ReturnType == typeof(IEnumerator)) 
+					{
+						TestCoroutine<Exception> teardownCoroutine = RunAsyncTest (fixtureInstance, entry.Method);
+						yield return teardownCoroutine.coroutine;
+						if (teardownCoroutine.Exception != null) {
+							Debug.LogException (teardownCoroutine.Exception);
+							setupException = teardownCoroutine.Exception;
+						}
+					} else {
+						setupException = RunNormalTest (fixtureEntry.FixtureType, fixtureInstance, entry.Method);
+					}
+
+					if (setupException != null) 
+					{
+						ReportTeardownError (fixtureEntry.FixtureType, entry.Method, entry.Method, setupException);
+						entry.State = TestState.Failed;
+						Debug.LogError ("Failed Assembly Teardown [" + entry.Method.Name + "] on [" + fixtureEntry.FixtureType.Name + "]");
+
+					} else {
+						entry.State = TestState.Passed;
+						Debug.Log ("Finished Assembly Teardown [" + entry.Method.Name + "] on [" + fixtureEntry.FixtureType.Name + "]");
+					}
+				}
+			}
+		}
+		#endregion
 	}
 }
