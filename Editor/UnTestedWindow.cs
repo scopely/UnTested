@@ -80,7 +80,12 @@ namespace UnTested
 		
 		private static void OpenUnitTestScene ()
 		{
-			if(EditorApplication.currentScene != UNIT_TESTS_SCENE) {
+			if(EditorApplication.currentScene != UNIT_TESTS_SCENE) 
+			{
+				if (EditorApplication.SaveCurrentSceneIfUserWantsTo ()) 
+				{
+					EditorApplication.SaveScene ();
+				}
 				EditorApplication.OpenScene(UNIT_TESTS_SCENE);
 			}
 		}
