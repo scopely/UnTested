@@ -26,8 +26,8 @@ using UnityEngine;
 using UnTested;
 
 [TestFixture]
-public class ExampleTests {
-
+public class ExampleTests 
+{
 	[TestSetup]
 	public void ExampleSetup ()
 	{
@@ -77,8 +77,8 @@ using UnityEngine;
 using UnTested;
 
 [AssemblyFixture]
-public class AssemblyFixtureExample {
-
+public class AssemblyFixtureExample 
+{
 	[AssemblySetup]
 	public void ExampleSetup ()
 	{
