@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace UnTested
 {
+	/// <summary>
+	/// UnTested Window - The Editor Window for Interacting with TestsConfig.
+	/// </summary>
 	public class UnTestedWindow : EditorWindow
 	{
 		#region Constants								
@@ -31,11 +34,17 @@ namespace UnTested
 		#endregion
 
 		#region Initialization
+		/// <summary>
+		/// Initialize the Window by Loading Images.
+		/// </summary>
 		private void OnEnable ()
 		{
 			LoadImages ();
 		}
-		
+
+		/// <summary>
+		/// Loads the Test State Icon Images.
+		/// </summary>
 		private void LoadImages ()
 		{
 			testStateImages = new Texture2D[(int)TestState.MAX];
@@ -47,18 +56,28 @@ namespace UnTested
 		#endregion
 		
 		#region Window Lifetime
+		/// <summary>
+		/// Opens Tests Scene and Shows the Window.
+		/// </summary>
 		[MenuItem("Window/UnTested")]
 		private static void ShowWindow()
 		{
 			OpenUnitTestScene ();
 			EditorWindow.GetWindow<UnTestedWindow>("UnTested");
 		}
+		/// <summary>
+		/// Validates the Menu Item based on if the Editor is Playing.
+		/// </summary>
+		/// <returns><c>true</c>, if RT was validated, <c>false</c> otherwise.</returns>
 		[MenuItem("Window/UnTested", true)]
 		private static bool ValidateRTD ()
 		{
 			return !EditorApplication.isPlaying;
 		}
-		
+
+		/// <summary>
+		/// Update this instance.
+		/// </summary>
 		private void Update () 
 		{
 			if(!EditorApplication.isCompiling && !Application.isPlaying) 
@@ -71,29 +90,39 @@ namespace UnTested
 		#endregion
 		
 		#region Configuration
+		/// <summary>
+		/// Runs all unit tests
+		/// NOTE: This can be called in batch mode (-executeMethod UnTested.UnTestedWindow.RunAllUnitTests)
+		/// Exit Values:
+		/// 	0 = All Tests Pass
+		/// 	1 = Assembly Setups Failed
+		/// 	2 = Tests Failed
+		/// 	3 = Assembly Teardowns Failed
+		/// </summary>
 		public static void RunAllUnitTests ()
 		{
 			OpenUnitTestScene();
 			TestsConfig.Instance.SetAllOn(true);
 			EditorUtil.PlayEditor();
 		}
-		
+
+		/// <summary>
+		/// Asks User if they want to Save the Current Scene and Opens the Unit Tests Scene.
+		/// </summary>
 		private static void OpenUnitTestScene ()
 		{
-			if(EditorApplication.currentScene != UNIT_TESTS_SCENE) 
-			{
-				if (EditorApplication.SaveCurrentSceneIfUserWantsTo ()) 
-				{
-					EditorApplication.SaveScene ();
-				}
-				EditorApplication.OpenScene(UNIT_TESTS_SCENE);
-			}
+			EditorUtil.SwitchToScene (UNIT_TESTS_SCENE);
 		}
 		#endregion
 		
 		#region OnGUI
 		
 		#region Getters
+		/// <summary>
+		/// Gets the Color associated with the passed in TestState.
+		/// </summary>
+		/// <returns>The color from test state.</returns>
+		/// <param name="state">State.</param>
 		private Color GetColorFromTestState(TestState state)
 		{
 			Color color = Color.white;
@@ -116,11 +145,21 @@ namespace UnTested
 			return color;
 		}
 
+		/// <summary>
+		/// Gets the Texture2D associated with the passed in TestState for the Icons.
+		/// </summary>
+		/// <returns>The texture for test state.</returns>
+		/// <param name="state">State.</param>
 		private Texture2D GetTextureForTestState(TestState state) 
 		{
 			return testStateImages [(int)state];
 		}
-		
+
+		/// <summary>
+		/// Sets the Background Color and Returns the GUIStyle based on if we are asking for a regular entry or a selected entry.
+		/// </summary>
+		/// <returns>The selection box.</returns>
+		/// <param name="isSelection">If set to <c>true</c> is selection.</param>
 		private GUIStyle GetSelectionBox(bool isSelection)
 		{
 			GUIStyle boxStyle = GUI.skin.box;
@@ -140,6 +179,9 @@ namespace UnTested
 		#endregion
 
 		#region Draw Functions
+		/// <summary>
+		/// Draws the not playing buttons: (All, None, Run, Run Paused).
+		/// </summary>
 		private void DrawNotPlayingButtons ()
 		{
 			EditorGUILayout.BeginHorizontal ();
@@ -169,7 +211,10 @@ namespace UnTested
 			}
 			EditorGUILayout.EndHorizontal ();
 		}
-		
+
+		/// <summary>
+		/// Draws the progess bar based on the current state of the TestRunner.
+		/// </summary>
 		private void DrawProgessBar()
 		{
 			float percentDone = 0.0f;
@@ -188,7 +233,10 @@ namespace UnTested
 
 			EditorUtil.DrawProgessBar(new Vector2 (0.0f, 0.0f), new Vector2 (this.position.width, PROGRESS_BAR_HEIGHT), percentDone, percentMsg, bgColor, fgColor, "BoldLabel");	
 		}
-		
+
+		/// <summary>
+		/// Draws the while playing buttons: (Done, Pause/Resume, Stop)
+		/// </summary>
 		private void DrawWhilePlayingButtons ()
 		{
 			EditorGUILayout.BeginHorizontal ();
@@ -203,6 +251,9 @@ namespace UnTested
 			EditorGUILayout.EndHorizontal ();
 		}
 
+		/// <summary>
+		/// Draws the pause/resume button.
+		/// </summary>
 		private void DrawPauseResumeButton ()
 		{
 			string pauseButtonStr = EditorApplication.isPaused ? "Resume" : "Pause";
@@ -211,13 +262,22 @@ namespace UnTested
 			}
 		}
 
+		/// <summary>
+		/// Draws the stop/done button.
+		/// </summary>
+		/// <param name="title">Title.</param>
 		private void DrawStopButton (string title)
 		{
 			if (GUILayout.Button (title)) {
 				EditorApplication.isPlaying = false;
 			}
 		}
-		
+
+		/// <summary>
+		/// Draws the test state icon.
+		/// </summary>
+		/// <param name="refRect">Reference rect.</param>
+		/// <param name="state">State.</param>
 		private void DrawTestStateIcon(Rect refRect, TestState state)
 		{
 			GUI.color = Color.white;
@@ -229,7 +289,10 @@ namespace UnTested
 
 			GUI.DrawTexture (stateRect, GetTextureForTestState (state));
 		}
-		
+
+		/// <summary>
+		/// Draws the log window.
+		/// </summary>
 		private void DrawLogWindow()
 		{
 			EditorUtil.SetAllColors(Color.white);
@@ -252,6 +315,9 @@ namespace UnTested
 		#endregion
 
 		#region OnGUI Heads
+		/// <summary>
+		/// OnGUI - Determine what is drawn based on state of the Editor.
+		/// </summary>
 		private void OnGUI()
 		{
 			if(EditorApplication.isCompiling) {
@@ -262,7 +328,10 @@ namespace UnTested
 				OnGUINotPlaying ();
 			}
 		}
-		
+
+		/// <summary>
+		/// Draws the elements relevant to the Editor not playing. (Not Playing Buttons, Test Fixture and Tests Toggles)
+		/// </summary>
 		private void OnGUINotPlaying ()
 		{
 			Undo.SetSnapshotTarget(TestsConfig.Instance, "Config Changed");
@@ -322,7 +391,10 @@ namespace UnTested
 		        Undo.RegisterSnapshot();
 		    }
 		}
-		
+
+		/// <summary>
+		/// Draws the elements relevant to the Editor playing. (While Playing Buttons, Test Fixture and Tests Selection Boxes, Log Window)
+		/// </summary>
 		private void OnGUIWhilePlaying ()
 		{
 			DrawProgessBar ();

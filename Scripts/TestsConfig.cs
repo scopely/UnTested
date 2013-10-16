@@ -19,6 +19,9 @@ namespace UnTested
 	#endregion
 
 	#region Entry Classes
+	/// <summary>
+	/// Log entry.
+	/// </summary>
 	public class LogEntry
 	{
 		public string LogMsg { get; set; }
@@ -31,6 +34,9 @@ namespace UnTested
 		}
 	}
 
+	/// <summary>
+	/// Assembly entry.
+	/// </summary>
 	public class AssemblyEntry
 	{
 		public TestState State { get; set; }
@@ -38,6 +44,9 @@ namespace UnTested
 		public List<LogEntry> Logs { get; set; }
 	}
 
+	/// <summary>
+	/// Fixture entry.
+	/// </summary>
 	public class FixtureEntry
 	{
 		public bool WillRun { get; set; }
@@ -46,6 +55,9 @@ namespace UnTested
 		public List<LogEntry> Logs { get; set; }
 	}
 
+	/// <summary>
+	/// Test entry.
+	/// </summary>
 	public class TestEntry
 	{
 		public bool WillRun { get; set; }
@@ -57,6 +69,10 @@ namespace UnTested
 	}
 	#endregion
 
+	/// <summary>
+	/// Tests config - Serializable Configuration Singleton, which looks through Assembly for Fixtures and Tests
+	/// determining whether they should run or not.
+	/// </summary>
 	[Serializable]
 	public class TestsConfig : ScriptableObject 
 	{
@@ -75,6 +91,11 @@ namespace UnTested
 		
 		#region Lifecycle
 		private static TestsConfig instance = null;
+
+		/// <summary>
+		/// Gets the Singleton instance.
+		/// </summary>
+		/// <value>The instance.</value>
 		public static TestsConfig Instance 
 		{
 			get
@@ -87,6 +108,9 @@ namespace UnTested
 			}
 		}
 
+		/// <summary>
+		/// Set Instance and Reload on enable.
+		/// </summary>
 		private void OnEnable ()
 		{
 			hideFlags = HideFlags.HideAndDontSave;
@@ -94,16 +118,25 @@ namespace UnTested
 			Reload ();
 		}
 
+		/// <summary>
+		/// Remove the instance on disable.
+		/// </summary>
 		private void OnDisable ()
 		{
 			instance = null;
 		}
 
+		/// <summary>
+		/// Remove the instance on destroy.
+		/// </summary>
 		private void OnDestroy ()
 		{
 			instance = null;
 		}
-		
+
+		/// <summary>
+		/// Update this instance.
+		/// </summary>
 		public void Update ()
 		{			
 			if(oldStr != configureString)
@@ -114,6 +147,10 @@ namespace UnTested
 		#endregion
 		
 		#region Configuration Helpers
+		/// <summary>
+		/// Sets all fixture and test entries to the bool passed in.
+		/// </summary>
+		/// <param name="onOff">If set to <c>true</c> on off.</param>
 		public void SetAllOn(bool onOff) {
 			foreach (FixtureEntry fixtureEntry in Tests.Keys) 
 			{
@@ -126,7 +163,10 @@ namespace UnTested
 
 			Persist ();
 		}
-		
+
+		/// <summary>
+		/// Reload this instance.
+		/// </summary>
 		public void Reload () {
 			LoadTestsFromAssembly ();
 			ReadConfigFromString ();
@@ -134,6 +174,9 @@ namespace UnTested
 		#endregion
 
 		#region Data Management
+		/// <summary>
+		/// Persist this instance.
+		/// </summary>
 		public void Persist(){
 
 			// Save as Text
@@ -166,6 +209,9 @@ namespace UnTested
 			oldStr = configureString;
 		}
 
+		/// <summary>
+		/// Reads the config from string.
+		/// </summary>
 		private void ReadConfigFromString()
 		{
 			NumberOfTestsToRun = 0;
@@ -209,6 +255,9 @@ namespace UnTested
 			oldStr = configureString;
 		}
 
+		/// <summary>
+		/// Loads the tests from assembly.
+		/// </summary>
 		private void LoadTestsFromAssembly () 
 		{
 			Tests = new Dictionary<FixtureEntry, List<TestEntry>> ();

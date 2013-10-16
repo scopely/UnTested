@@ -10,15 +10,20 @@ using UnityEditor;
 
 namespace UnTested
 {
+	/// <summary>
+	/// Test runner - Singleton MonoBehavior which runs the unit tests set in TestsConfig on enable and outputs to the console window.
+	/// </summary>
 	public class TestRunner : Singleton<TestRunner>
 	{
 		#region Report Classes
-		public abstract class ITestReport
+		/// Base Class for Test Report.
+		private abstract class ITestReport
 		{
 			public abstract string MessageReport ();
 		}
 
-		public class PassedTestReport : ITestReport
+		/// Test Report for Passed Tests
+		private class PassedTestReport : ITestReport
 		{
 			public PassedTestReport (string _fixtureName, string _testName)
 			{
@@ -38,6 +43,7 @@ namespace UnTested
 			}
 		}
 
+		/// Test Report for Failed Tests
 		private class FailedTestReport : ITestReport
 		{
 			public FailedTestReport (string _fixtureName, string _testName, string _errorMessage)
@@ -57,6 +63,7 @@ namespace UnTested
 			}
 		}
 
+		/// Test Report for Failed Setups
 		private class FailedSetupReport : FailedTestReport
 		{
 			public FailedSetupReport (string _fixtureName, string _setupName, string _testName, string _errorMessage) : base(_fixtureName, _testName, _errorMessage)
@@ -72,6 +79,7 @@ namespace UnTested
 			}
 		}
 
+		/// Test Report for Failed Teardowns
 		private class FailedTeardownReport : FailedTestReport
 		{
 			public FailedTeardownReport (string _fixtureName, string _teardownName, string _testName, string _errorMessage) : base(_fixtureName, _testName, _errorMessage)
@@ -112,24 +120,47 @@ namespace UnTested
 		#endregion
 
 		#region Reports
-		private void ReportSetupError(Type fixtureType, MethodInfo setupMethod, MethodInfo testMethod, Exception e)
+		/// <summary>
+		/// Reports the setup error.
+		/// </summary>
+		/// <param name="fixtureType">Fixture type.</param>
+		/// <param name="setupMethod">Setup method.</param>
+		/// <param name="testMethod">Test method.</param>
+		/// <param name="exception">Exception.</param>
+		private void ReportSetupError(Type fixtureType, MethodInfo setupMethod, MethodInfo testMethod, Exception exception)
 		{
 			++failedSetupCounter;
-			failedSetupReports.Add (new FailedSetupReport (fixtureType.Name, setupMethod.Name, testMethod.Name, e.Message));
+			failedSetupReports.Add (new FailedSetupReport (fixtureType.Name, setupMethod.Name, testMethod.Name, exception.Message));
 		}
 
-		private void ReportTestError(Type fixtureType, MethodInfo testMethod, Exception e)
+		/// <summary>
+		/// Reports the test error.
+		/// </summary>
+		/// <param name="fixtureType">Fixture type.</param>
+		/// <param name="testMethod">Test method.</param>
+		/// <param name="exception">Exception.</param>
+		private void ReportTestError(Type fixtureType, MethodInfo testMethod, Exception exception)
 		{
 			++FailedTestCounter;
-			failedTestReports.Add (new FailedTestReport (fixtureType.Name, testMethod.Name, e.Message));
+			failedTestReports.Add (new FailedTestReport (fixtureType.Name, testMethod.Name, exception.Message));
 		}
 
-		private void ReportTeardownError(Type fixtureType, MethodInfo teardownMethod, MethodInfo testMethod, Exception e)
+		/// <summary>
+		/// Reports the teardown error.
+		/// </summary>
+		/// <param name="fixtureType">Fixture type.</param>
+		/// <param name="teardownMethod">Teardown method.</param>
+		/// <param name="testMethod">Test method.</param>
+		/// <param name="exception">Exception.</param>
+		private void ReportTeardownError(Type fixtureType, MethodInfo teardownMethod, MethodInfo testMethod, Exception exception)
 		{
 			++failedTeardownCounter;
-			failedTeardownReports.Add (new FailedTeardownReport (fixtureType.Name, teardownMethod.Name, testMethod.Name, e.Message));
+			failedTeardownReports.Add (new FailedTeardownReport (fixtureType.Name, teardownMethod.Name, testMethod.Name, exception.Message));
 		}
 
+		/// <summary>
+		/// Outputs the total test summary.
+		/// </summary>
 		private void OutputSummary () 
 		{
 			if(FailedTestCounter > 0 || failedSetupCounter > 0 || failedTeardownCounter > 0) {
@@ -149,6 +180,12 @@ namespace UnTested
 			}
 		}
 
+		/// <summary>
+		/// Creates an error report chunk.
+		/// </summary>
+		/// <returns>The error report chunk.</returns>
+		/// <param name="title">Title.</param>
+		/// <param name="failList">Fail list.</param>
 		private string CreateErrorReportChunk(string title, List<ITestReport> failList) 
 		{
 			string log = string.Format ("\n{0}:\n", title);
@@ -164,11 +201,17 @@ namespace UnTested
 		#endregion
 
 		#region Initialization
+		/// <summary>
+		/// Run Tests on Enable.
+		/// </summary>
 		private void OnEnable ()
 		{
 			RunTests ();
 		}
-		
+
+		/// <summary>
+		/// Initialize report collectors and Runs the tests.
+		/// </summary>
 		private void RunTests() 
 		{
 			failedSetupReports = new List<ITestReport>();
@@ -177,7 +220,11 @@ namespace UnTested
 
 			StartCoroutine(RunTestsWithOutputCoroutine());
 		}
-		
+
+		/// <summary>
+		/// Runs Assembly Setups, Tests and Assembly Teardowns then Outputs the Summary and Finishes.
+		/// </summary>
+		/// <returns>The tests with output coroutine.</returns>
 		private IEnumerator RunTestsWithOutputCoroutine() 
 		{
 			yield return StartCoroutine(RunAssemblySetupCoroutine());
@@ -189,6 +236,9 @@ namespace UnTested
 		#endregion
 
 		#region Tests Finished
+		/// <summary>
+		/// Closes Editor if Running in batch mode, otherwise sends off tests finished event.
+		/// </summary>
 		private void TestsFinished ()
 		{
 			#if UNITY_EDITOR
@@ -202,13 +252,20 @@ namespace UnTested
 
 			FinishedRunning = true;
 		}
-		
+
+		/// <summary>
+		/// Ares the we running headless.
+		/// </summary>
 		private bool AreWeRunningHeadless () {
 			String[] arguments = Environment.GetCommandLineArgs();
 			string args = string.Join(", ", arguments);
 			return args.Contains("-batchmode");
 		}
-		
+
+		/// <summary>
+		/// Gets the exit code based on failed reports.
+		/// </summary>
+		/// <returns>The exit code.</returns>
 		private int GetExitCode ()
 		{
 			int code = 0;
@@ -223,6 +280,13 @@ namespace UnTested
 		#endregion
 		
 		#region Running
+		/// <summary>
+		/// Runs the normal test.
+		/// </summary>
+		/// <returns>null or Exception</returns>
+		/// <param name="fixtureType">Fixture type.</param>
+		/// <param name="fixtureInstance">Fixture instance.</param>
+		/// <param name="methodInfo">Method info.</param>
 		private Exception RunNormalTest(Type fixtureType, object fixtureInstance, MethodInfo methodInfo)
 		{
 			try {
@@ -235,11 +299,23 @@ namespace UnTested
 			return null;
 		}
 
+		/// <summary>
+		/// Runs the async test.
+		/// </summary>
+		/// <returns>The async test.</returns>
+		/// <param name="fixtureInstance">Fixture instance.</param>
+		/// <param name="testMethod">Test method.</param>
 		private TestCoroutine<Exception> RunAsyncTest(object fixtureInstance, MethodInfo testMethod)
 		{
 			return TestExtensions.StartTestCoroutine<Exception>(this, (IEnumerator)testMethod.Invoke(fixtureInstance, new object[] {}));
 		}
 
+		/// <summary>
+		/// Handles the test log.
+		/// </summary>
+		/// <param name="logString">Log string.</param>
+		/// <param name="stackTrace">Stack trace.</param>
+		/// <param name="logType">Log type.</param>
 		private void HandleTestLog(string logString, string stackTrace, LogType logType)
 		{
 			bool showStack = !logString.Contains("TestFlowException:");
@@ -252,7 +328,11 @@ namespace UnTested
 			currentFixture.Logs.Add (logEntry);
 			currentTest.Logs.Add (logEntry);
 		}
-		
+
+		/// <summary>
+		/// Runs the assembly setups.
+		/// </summary>
+		/// <returns>The assembly setup coroutine.</returns>
 		private IEnumerator RunAssemblySetupCoroutine()
 		{
 			foreach (FixtureEntry fixtureEntry in TestsConfig.Instance.AssemblySetups.Keys) 
@@ -289,7 +369,11 @@ namespace UnTested
 				}
 			}
 		}
-		
+
+		/// <summary>
+		/// Runs the tests.
+		/// </summary>
+		/// <returns>The tests coroutine.</returns>
 		private IEnumerator RunTestsCoroutine()
 		{
 			Application.RegisterLogCallback (HandleTestLog);
@@ -468,7 +552,11 @@ namespace UnTested
 
 			Application.RegisterLogCallback (null);
 		}
-		
+
+		/// <summary>
+		/// Runs the assembly teardowns.
+		/// </summary>
+		/// <returns>The assembly teardown coroutine.</returns>
 		private IEnumerator RunAssemblyTeardownCoroutine()
 		{
 			foreach (FixtureEntry fixtureEntry in TestsConfig.Instance.AssemblyTeardowns.Keys) 
