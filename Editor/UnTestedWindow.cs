@@ -113,6 +113,15 @@ namespace UnTested
 		{
 			EditorUtil.SwitchToScene (UNIT_TESTS_SCENE);
 		}
+
+		/// <summary>
+		/// Saves the tests.
+		/// </summary>
+		private void SaveTests ()
+		{
+			Undo.RegisterUndo (TestsConfig.Instance, "Config Change");
+			TestsConfig.Instance.Persist ();
+		}
 		#endregion
 		
 		#region OnGUI
@@ -188,11 +197,13 @@ namespace UnTested
 			{
 				// All / None Buttons
 				if (GUILayout.Button ("All")) {
+					Undo.RegisterUndo (TestsConfig.Instance, "Config Change");
 					TestsConfig.Instance.SetAllOn (true);
 					return;
 				}
 
 				if (GUILayout.Button ("None")) {
+					Undo.RegisterUndo (TestsConfig.Instance, "Config Change");
 					TestsConfig.Instance.SetAllOn (false);
 					return;
 				}
@@ -334,9 +345,6 @@ namespace UnTested
 		/// </summary>
 		private void OnGUINotPlaying ()
 		{
-			Undo.SetSnapshotTarget(TestsConfig.Instance, "Config Changed");
-			Undo.CreateSnapshot();
-		
 			DrawNotPlayingButtons();
 
 			scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
@@ -354,7 +362,7 @@ namespace UnTested
 							{
 								entry.WillRun = fixtureEntry.WillRun;
 							}
-							TestsConfig.Instance.Persist ();
+							SaveTests ();
 
 						} else {
 							foreach (TestEntry entry in TestsConfig.Instance.Tests[fixtureEntry]) 
@@ -373,9 +381,9 @@ namespace UnTested
 
 								if (fixtureEntry.WillRun != !allOff) {
 									fixtureEntry.WillRun = !allOff;
-									TestsConfig.Instance.Persist ();
+									SaveTests ();
 								} else if(originalTestOn != entry.WillRun) {
-									TestsConfig.Instance.Persist ();
+									SaveTests ();
 								}
 							}
 						}
@@ -384,12 +392,6 @@ namespace UnTested
 				}
 			}
 			EditorGUILayout.EndScrollView();
-			
-			if (GUI.changed)
-		    {
-		        EditorUtility.SetDirty(TestsConfig.Instance);
-		        Undo.RegisterSnapshot();
-		    }
 		}
 
 		/// <summary>
