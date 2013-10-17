@@ -206,6 +206,9 @@ namespace UnTested
 		/// </summary>
 		private void OnEnable ()
 		{
+#if !UNITY_EDITOR
+			TestsConfig.Instance.SetAllOn(true);
+#endif
 			RunTests ();
 		}
 
