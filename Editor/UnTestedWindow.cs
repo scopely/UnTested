@@ -31,6 +31,9 @@ namespace UnTested
 		private const float PROGRESS_BAR_FG_FILL = 0.75f;
 		private const float LOG_WINDOW_HEIGHT = 200.0f;
 		private const float PRO_SELECTION_BLUE = 0.5f;
+		private const float START_WIDTH_PADDING = 5.0f;
+		private const float END_WIDTH_PADDING = 10.0f;
+		private const float HEIGHT_SPACING = 2.0f;
 		#endregion
 
 		#region Initialization
@@ -242,7 +245,9 @@ namespace UnTested
 				fgColor = new Color (PROGRESS_BAR_FG_FILL, 0.0f, 0.0f);
 			}
 
-			EditorUtil.DrawProgessBar(new Vector2 (0.0f, 0.0f), new Vector2 (this.position.width, PROGRESS_BAR_HEIGHT), percentDone, percentMsg, bgColor, fgColor, "BoldLabel");	
+			EditorUtil.DrawProgessBar(new Vector2 (START_WIDTH_PADDING, HEIGHT_SPACING), 
+			                          new Vector2 (this.position.width - END_WIDTH_PADDING, PROGRESS_BAR_HEIGHT),
+			                          percentDone, percentMsg, bgColor, fgColor, "BoldLabel", HEIGHT_SPACING);	
 		}
 
 		/// <summary>

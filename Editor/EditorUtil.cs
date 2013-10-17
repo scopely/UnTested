@@ -69,14 +69,14 @@ namespace UnTested
 		/// <param name="bgColor">Background color.</param>
 		/// <param name="fgColor">Foreground color.</param>
 		/// <param name="msgStyle">Message style.</param>
-		public static void DrawProgessBar(Vector2 location, Vector2 size, float progress, string msg, Color bgColor, Color fgColor, GUIStyle msgStyle)
+		public static void DrawProgessBar(Vector2 location, Vector2 size, float progress, string msg, Color bgColor, Color fgColor, GUIStyle msgStyle, float spacePadding = 0.0f)
 		{
 			Rect backRect = new Rect (location.x, location.y, size.x, size.y);
 		
 			EditorGUI.DrawRect(backRect, bgColor);
 			EditorGUI.DrawRect(new Rect(location.x, location.y, size.x * progress, size.y), fgColor);
 
-			GUILayout.Space (size.y);
+			GUILayout.Space (size.y + spacePadding);
 			GUILayout.Label (msg, msgStyle);
 		}
 
