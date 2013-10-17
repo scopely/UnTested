@@ -5,28 +5,36 @@
 //[TestFixture]
 //public class ExampleTests {
 //
+//	GameObject sphere = null;
+//	GameObject plane = null;
+//
 //	[TestSetup]
-//	public void ExampleSetup ()
+//	public IEnumerator GetSphere ()
 //	{
-//		Assert.IsNull (null, "THIS SHOULD PASS");
+//		if(sphere == null)
+//		{
+//			sphere = GameObject.Find ("Sphere");
+//			sphere.rigidbody.useGravity = true;
+//		}
+//		if(plane == null)
+//		{
+//			plane = GameObject.Find ("Plane");
+//		}
+//
+//		yield return new WaitForFixedUpdate ();
 //	}
 //
 //	[Test]
-//	public IEnumerator AsyncTest ()
+//	public IEnumerator TestSphereCollidesWithPlane ()
 //	{
-//		yield return new WaitForSeconds (0.5f);
-//		Assert.IsFalse (false, "THIS SHOULD PASS");
-//	}
+//		float timer = 5.0f;
 //
-//	[Test]
-//	public void NormalTest ()
-//	{
-//		Assert.IsTrue (true, "THIS SHOULD PASS");
-//	}
+//		while(sphere.rigidbody.velocity.y != 0.0f && sphere.transform.position.y > plane.transform.position.y && timer > 0.0f)
+//		{
+//			yield return new WaitForFixedUpdate ();
+//			timer -= Time.deltaTime;
+//		}
 //
-//	[TestTeardown]
-//	public void ExampleTeardown ()
-//	{
-//		Assert.IsNull (null, "THIS SHOULD PASS");
+//		Assert.AreEqual (0.0f, sphere.rigidbody.velocity.y);
 //	}
 //}
