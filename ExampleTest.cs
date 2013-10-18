@@ -3,7 +3,7 @@
 //using UnTested;
 //
 //[TestFixture]
-//public class ExampleTests {
+//public class ExampleTest {
 //
 //	GameObject sphere = null;
 //	GameObject plane = null;

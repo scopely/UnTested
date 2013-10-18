@@ -1,5 +1,7 @@
 UnTested v1.0
 
+Tutorial: http://youtu.be/hX2etHFrIDQ
+
 Creating Test Fixtures
 ----------------------
 1. Create a C# Script, add using UnTested; at the top of the file.
@@ -77,7 +79,7 @@ public class AssemblyFixtureExample
 	[AssemblySetup]
 	public void ExampleSetup ()
 	{
-		Assert.IsNotNull (null, "THIS SHOULD FAIL");
+		Assert.IsNull (null, "THIS SHOULD PASS");
 	}
 
 	[AssemblyTeardown]
