@@ -18,18 +18,6 @@ namespace UnTested
 	            // Instance requiered for the first time, we look for it
 	            else {
 	                m_Instance = GameObject.FindObjectOfType(typeof(T)) as T;
-
-	                // Object not found, we create a temporary one
-	                if( m_Instance == null )
-	                {
-	                    m_Instance = new GameObject(typeof(T).ToString(), typeof(T)).GetComponent<T>();
-
-	                    // Problem during the creation, this should not happen
-	                    if( m_Instance == null )
-	                    {
-							Debug.LogError("Singleton: Problem during the creation of " + typeof(T).ToString());
-	                    }
-	                }
 	            }
 
 	            return m_Instance;
@@ -44,9 +32,18 @@ namespace UnTested
 	        if( m_Instance == null )
 	        {
 	            m_Instance = this as T;
-	            DontDestroyOnLoad(gameObject);
 	        }
 	    }
+
+		protected virtual void OnDisable()
+		{
+			m_Instance = null;
+		}
+
+		protected virtual void OnDestroy()
+		{
+			m_Instance = null;
+		}
 
 	    /// <summary>
 	    /// Clear the reference when the application quits. Override when necessary and call base.OnApplicationQuit() last.

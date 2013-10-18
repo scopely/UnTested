@@ -336,8 +336,10 @@ namespace UnTested
 		/// </summary>
 		private void OnGUI()
 		{
-			if(EditorApplication.isCompiling) {
+			if (EditorApplication.isCompiling) {
 				GUILayout.Label ("Compiling...");
+			} else if(TestRunner.Instance == null || !TestRunner.Instance.gameObject.activeSelf || !TestRunner.Instance.enabled) {
+				GUILayout.Label ("Test Runner not Present in Scene");
 			} else if(Application.isPlaying) {
 				OnGUIWhilePlaying ();
 			} else {
