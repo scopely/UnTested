@@ -77,7 +77,7 @@ public class AssemblyFixtureExample
 	[AssemblySetup]
 	public void ExampleSetup ()
 	{
-		Assert.IsNotNull (null, "THIS SHOULD FAIL");
+		Assert.IsNull (null, "THIS SHOULD PASS");
 	}
 
 	[AssemblyTeardown]
