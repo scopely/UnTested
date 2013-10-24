@@ -6,20 +6,21 @@ Creating Test Fixtures
 ----------------------
 1. Create a C# Script, add using UnTested; at the top of the file.
 If you want to write Async Methods you will need to include:
-using System.Collections;
+`using System.Collections;`
 
 2. Create a C# Class with the [TestFixture] Attribute.
 All Attributted methods in this class must be public and have a return type of
-void (Normal) or IEnumerator (Async).
+`void` (Normal) or `IEnumerator` (Async).
 
-3. (Optional) Create methods within this Class with the [TestSetup] Attribute These methods will get called before each Test in the Fixture is Run.
+3. (Optional) Create methods within this Class with the `[TestSetup]` Attribute These methods will get called before each Test in the Fixture is Run.
 
-4. Create methods within this Class with the [Test] Attribute. These methods will be the actual Tests use the static Assert Functions to compose your Tests.
+4. Create methods within this Class with the `[Test]` Attribute. These methods will be the actual Tests use the static Assert Functions to compose your Tests.
 
-5. (Optional) Create methods within this Class with the [TestTeardown] Attribute. These methods will get called after each Test in the Fixture has Run.
+5. (Optional) Create methods within this Class with the `[TestTeardown]` Attribute. These methods will get called after each Test in the Fixture has Run.
 
 Example:
 
+```lang=csharp
 using System.Collections;
 using UnityEngine;
 using UnTested;
@@ -52,23 +53,25 @@ public class ExampleTests
 		Assert.IsNull (null, "THIS SHOULD PASS");
 	}
 }
+```
 
 (Optional) Creating Assembly Fixtures
 -------------------------------------
 1. Create a C# Script, add using UnTested; at the top of the file.
 If you want to write Async Methods you will need to include:
-using System.Collections;
+`using System.Collections;`
 
-2. Create a C# Class with the [AssemblyFixture] Attribute.
+2. Create a C# Class with the `[AssemblyFixture]` Attribute.
 All Attributted methods in this class must be public and have a return type of
-void (Normal) or IEnumerator (Async).
+`void` (Normal) or `IEnumerator` (Async).
 
-3. (Optional) Create methods within this Class with the [AssemblySetup] Attribute. These methods will get called before ALL Test are Run.
+3. (Optional) Create methods within this Class with the `[AssemblySetup]` Attribute. These methods will get called before ALL Test are Run.
 
-4. (Optional) Create methods within this Class with the [AssemblyTeardown] Attribute. These methods will get called after ALL Tests have Run.
+4. (Optional) Create methods within this Class with the `[AssemblyTeardown]` Attribute. These methods will get called after ALL Tests have Run.
 
 Example:
 
+```lang=csharp
 using System.Collections;
 using UnityEngine;
 using UnTested;
@@ -88,6 +91,7 @@ public class AssemblyFixtureExample
 		Assert.IsNull (null, "THIS SHOULD PASS");
 	}
 }
+```
 
 Running Tests
 -------------
